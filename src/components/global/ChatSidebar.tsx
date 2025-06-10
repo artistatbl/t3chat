@@ -7,21 +7,18 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  //SidebarMenuItem,
   SidebarFooter,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import {// Button,
-   buttonVariants } from '../ui/button';
+import { buttonVariants } from '../ui/button';
 import UserProfile from './UserProfile';
-
 import Link from 'next/link';
-
 import { memo } from 'react';
+import { useThreadStore } from '@/app/frontend/stores/ThreadStore';
+import { MessageSquareMore } from 'lucide-react';
 
 export default function ChatSidebar() {
-  // const { id } = useParams();
-  // const router = useRouter();
+  const threads = useThreadStore((state) => state.threads);
 
   return (
     <Sidebar>
@@ -31,6 +28,16 @@ export default function ChatSidebar() {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
+                {threads.map((thread) => (
+                  <Link
+                    key={thread.id}
+                    href={`/chat/${thread.id}`}
+                    className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted"
+                  >
+                    <MessageSquareMore className="w-4 h-4" />
+                    <span className="truncate">{thread.name}</span>
+                  </Link>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -64,9 +71,6 @@ function PureHeader() {
 const Header = memo(PureHeader);
 
 const PureFooter = () => {
-  // const params = useParams();
-  // const chatId = params?.thread as string;
-
   return (
     <SidebarFooter>
       <UserProfile />

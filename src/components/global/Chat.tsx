@@ -6,6 +6,7 @@ import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 import { useModelStore } from '@/app/frontend/stores/ModelStore';
+import { useThreadStore } from '@/app/frontend/stores/ThreadStore';
 import { client } from '@/lib/client';
 import ThemeToggler from '../ui/ThemeToggler';
 import { SidebarTrigger, useSidebar } from '../ui/sidebar';
@@ -25,6 +26,7 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
   const { getKey } = useAPIKeyStore();
   const selectedModel = useModelStore((state) => state.selectedModel);
   const modelConfig = useModelStore((state) => state.getModelConfig());
+  const addThread = useThreadStore((state) => state.addThread);
 
   const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
   const [input, setInput] = useState('');
@@ -51,7 +53,13 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     setMessages(prev => [...prev, message]);
     setStatus('submitted');
     setError(undefined);
-  
+
+    // Create thread name from first message
+    if (messages.length === 0) {
+      const threadName = message.content.slice(0, 30) + (message.content.length > 30 ? '...' : '');
+      addThread(threadId, threadName);
+    }
+
     // Create abort controller for this request
     const controller = new AbortController();
     setAbortController(controller);
@@ -228,7 +236,7 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     } finally {
       setAbortController(null);
     }
-  }, [messages, status, selectedModel, modelConfig, getKey]);
+  }, [messages, status, selectedModel, modelConfig, getKey, threadId, addThread]);
 
   const stop = useCallback(() => {
     if (abortController) {

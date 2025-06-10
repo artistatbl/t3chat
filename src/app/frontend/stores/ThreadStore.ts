@@ -1,3 +1,6 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
 type Thread = {
   id: string;
   name: string;
@@ -11,12 +14,14 @@ type ThreadStore = {
 };
 
 export const useThreadStore = create<ThreadStore>()(
-  persist(
-    (set, get) => ({
+  persist<ThreadStore>(
+    (set: (fn: (state: ThreadStore) => ThreadStore) => void, get: () => ThreadStore) => ({
       threads: [],
       addThread: (id: string, name: string) => {
         set((state) => ({
           threads: [...state.threads, { id, name, createdAt: new Date() }],
+          addThread: state.addThread,
+          getThreadName: state.getThreadName
         }));
       },
       getThreadName: (id: string) => {
