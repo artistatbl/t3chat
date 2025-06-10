@@ -169,8 +169,8 @@ function PureChatInput({
 
   return (
     <>
-      <div className="fixed bottom-0 w-full max-w-3xl">
-        <div className="bg-secondary rounded-t-[20px] p-2 pb-0 w-full">
+      <div className="fixed bottom-0 w-full ring-1 ring-transparent rounded-xl max-w-3xl">
+        <div className="bg-secondary rounded-t-[20px]  p-2 pb-0 w-full">
           <div className="relative">
             <div className="flex flex-col">
               <div className="bg-secondary overflow-y-auto max-h-[300px]">

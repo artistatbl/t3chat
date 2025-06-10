@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
 export default function UserProfile() {
@@ -22,13 +21,33 @@ export default function UserProfile() {
     );
   }
 
-  // If no user is logged in, don't render anything
+  // If no user is logged in, show login text
   if (!user) {
-    return null;
+    return (
+      <Link href="/sign-in" className="block">
+        <Button
+          variant="ghost"
+          className="w-full h-auto p-3 flex items-center gap-3 hover:bg-secondary transition-colors"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+              G
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 text-left min-w-0">
+            <p className="text-sm font-medium truncate">
+              Sign in
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              Get started with T3Chat
+            </p>
+          </div>
+        </Button>
+      </Link>
+    );
   }
 
   const displayName = user.fullName || user.firstName || user.username || 'User';
-  const displayEmail = user.primaryEmailAddress?.emailAddress || '';
   const displayImage = user.imageUrl;
 
   const initials = displayName
@@ -55,11 +74,9 @@ export default function UserProfile() {
             {displayName}
           </p>
           <p className="text-xs text-muted-foreground truncate">
-            {displayEmail}
+            No plan 
           </p>
         </div>
-        
-        <Settings className="h-4 w-4 text-muted-foreground" />
       </Button>
     </Link>
   );
