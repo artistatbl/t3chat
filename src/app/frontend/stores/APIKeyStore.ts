@@ -19,6 +19,11 @@ type StoreWithPersist = Mutate<
 >;
 
 export const withStorageDOMEvents = (store: StoreWithPersist) => {
+  // Check if we're in the browser environment
+  if (typeof window === 'undefined') {
+    return () => {}; // Return empty cleanup function for SSR
+  }
+
   const storageEventCallback = (e: StorageEvent) => {
     if (e.key === store.persist.getOptions().name && e.newValue) {
       store.persist.rehydrate();
@@ -63,4 +68,7 @@ export const useAPIKeyStore = create<APIKeyStore>()(
   )
 );
 
-withStorageDOMEvents(useAPIKeyStore);
+// Only call withStorageDOMEvents in the browser
+if (typeof window !== 'undefined') {
+  withStorageDOMEvents(useAPIKeyStore);
+}

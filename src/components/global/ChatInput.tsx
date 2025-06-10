@@ -1,6 +1,6 @@
 'use client';
 import { ChevronDown, Check, ArrowUpIcon } from 'lucide-react';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -16,11 +16,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 import { useModelStore } from '@/app/frontend/stores/ModelStore';
 import { AIModel, getModelConfig, getAvailableModels } from '@/lib/models';
-import KeyPrompt from '@/components/global/KeyPrompt';
+import APIKeyDialog from '@/components/global/APIKeyDialog';
 import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { StopIcon } from '../ui/icons';
-// import { toast } from 'sonner';
 import { useMessageSummary } from '@/app/frontend/hooks/useMessageSummary';
 
 interface ChatInputProps {
@@ -58,6 +57,7 @@ function PureChatInput({
   stop,
 }: ChatInputProps) {
   const canChat = useAPIKeyStore((state) => state.hasRequiredKeys());
+  const [showAPIKeyDialog, setShowAPIKeyDialog] = useState(false);
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 72,
@@ -85,11 +85,16 @@ function PureChatInput({
     )
       return;
 
+    // Check if user has API keys before proceeding
+    if (!canChat) {
+      setShowAPIKeyDialog(true);
+      return;
+    }
+
     const messageId = uuidv4();
 
     if (!id) {
       router.push(`/chat?thread=${threadId}`);
-      // await createThread(threadId);
       complete(currentInput.trim(), {
         body: { threadId, messageId, isTitle: true },
       });
@@ -98,8 +103,6 @@ function PureChatInput({
     }
 
     const userMessage = createUserMessage(messageId, currentInput.trim());
-    // await createMessage(threadId, userMessage);
-
     append(userMessage);
     setInput('');
     adjustHeight(true);
@@ -114,11 +117,13 @@ function PureChatInput({
     threadId,
     complete,
     router,
+    canChat,
   ]);
 
-  if (!canChat) {
-    return <KeyPrompt />;
-  }
+  const handleAPIKeySuccess = useCallback(() => {
+    // After API key is saved, automatically submit the message
+    handleSubmit();
+  }, [handleSubmit]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -133,49 +138,57 @@ function PureChatInput({
   };
 
   return (
-    <div className="fixed bottom-0 w-full max-w-3xl">
-      <div className="bg-secondary rounded-t-[20px] p-2 pb-0 w-full">
-        <div className="relative">
-          <div className="flex flex-col">
-            <div className="bg-secondary overflow-y-auto max-h-[300px]">
-              <Textarea
-                id="chat-input"
-                value={input}
-                placeholder="What can I do for you?"
-                className={cn(
-                  'w-full px-4 py-3 border-none shadow-none dark:bg-transparent',
-                  'placeholder:text-muted-foreground resize-none',
-                  'focus-visible:ring-0 focus-visible:ring-offset-0',
-                  'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/30',
-                  'scrollbar-thumb-rounded-full',
-                  'min-h-[72px]'
-                )}
-                ref={textareaRef}
-                onKeyDown={handleKeyDown}
-                onChange={handleInputChange}
-                aria-label="Chat message input"
-                aria-describedby="chat-input-description"
-              />
-              <span id="chat-input-description" className="sr-only">
-                Press Enter to send, Shift+Enter for new line
-              </span>
-            </div>
+    <>
+      <div className="fixed bottom-0 w-full max-w-3xl">
+        <div className="bg-secondary rounded-t-[20px] p-2 pb-0 w-full">
+          <div className="relative">
+            <div className="flex flex-col">
+              <div className="bg-secondary overflow-y-auto max-h-[300px]">
+                <Textarea
+                  id="chat-input"
+                  value={input}
+                  placeholder="What can I do for you?"
+                  className={cn(
+                    'w-full px-4 py-3 border-none shadow-none dark:bg-transparent',
+                    'placeholder:text-muted-foreground resize-none',
+                    'focus-visible:ring-0 focus-visible:ring-offset-0',
+                    'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/30',
+                    'scrollbar-thumb-rounded-full',
+                    'min-h-[72px]'
+                  )}
+                  ref={textareaRef}
+                  onKeyDown={handleKeyDown}
+                  onChange={handleInputChange}
+                  aria-label="Chat message input"
+                  aria-describedby="chat-input-description"
+                />
+                <span id="chat-input-description" className="sr-only">
+                  Press Enter to send, Shift+Enter for new line
+                </span>
+              </div>
 
-            <div className="h-14 flex items-center px-2">
-              <div className="flex items-center justify-between w-full">
-                <ChatModelDropdown />
+              <div className="h-14 flex items-center px-2">
+                <div className="flex items-center justify-between w-full">
+                  <ChatModelDropdown />
 
-                {status === 'submitted' || status === 'streaming' ? (
-                  <StopButton stop={stop} />
-                ) : (
-                  <SendButton onSubmit={handleSubmit} disabled={isDisabled} />
-                )}
+                  {status === 'submitted' || status === 'streaming' ? (
+                    <StopButton stop={stop} />
+                  ) : (
+                    <SendButton onSubmit={handleSubmit} disabled={isDisabled} />
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      <APIKeyDialog
+        open={showAPIKeyDialog}
+        onOpenChange={setShowAPIKeyDialog}
+        onSuccess={handleAPIKeySuccess}
+      />
+    </>
   );
 }
 

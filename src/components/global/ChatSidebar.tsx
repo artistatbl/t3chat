@@ -7,16 +7,17 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuItem,
+  //SidebarMenuItem,
   SidebarFooter,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Button, buttonVariants } from '../ui/button';
+import {// Button,
+   buttonVariants } from '../ui/button';
 import UserProfile from './UserProfile';
 
 // Replace React Router imports with Next.js equivalents
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
+// import { useRouter, useParams } from 'next/navigation';
 // import { X } from 'lucide-react';
 // import { cn } from '@/lib/utils';
 import { memo } from 'react';
@@ -99,8 +100,8 @@ function PureHeader() {
 const Header = memo(PureHeader);
 
 const PureFooter = () => {
-  const params = useParams();
-  const chatId = params?.thread as string;
+  // const params = useParams();
+  // const chatId = params?.thread as string;
 
   return (
     <SidebarFooter>
