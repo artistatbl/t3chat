@@ -1,7 +1,7 @@
 "use client"
 
 import { useUserSync } from "@/app/hooks/useSync"
-import { SyncMessage } from "@/app/components/auth/sync-message"
+import { SyncMessage } from "@/components/auth/sync-message"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 

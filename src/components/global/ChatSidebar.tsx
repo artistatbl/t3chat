@@ -12,6 +12,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button, buttonVariants } from '../ui/button';
+import UserProfile from './UserProfile';
 
 // Replace React Router imports with Next.js equivalents
 import Link from 'next/link';
@@ -103,15 +104,7 @@ const PureFooter = () => {
 
   return (
     <SidebarFooter>
-      <Link
-        href={{
-          pathname: "/settings",
-          query: chatId ? { from: chatId } : {},
-        }}
-        className={buttonVariants({ variant: "outline" })}
-      >
-        Settings
-      </Link>
+      <UserProfile />
     </SidebarFooter>
   );
 };
