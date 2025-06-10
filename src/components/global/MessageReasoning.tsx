@@ -15,7 +15,7 @@ function PureMessageReasoning({
     <div className="flex flex-col gap-2 pb-2 max-w-3xl w-full">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 text-muted-foreground cursor-pointer"
+        className="flex items-center gap-2 text-red-500 cursor-pointer"
       >
         {isExpanded ? (
           <span>
@@ -29,7 +29,7 @@ function PureMessageReasoning({
         <span>Reasoning</span>
       </button>
       {isExpanded && (
-        <div className="p-4 rounded-md bg-secondary/10 text-xs border">
+        <div className="p-4 rounded-md bg-red-500 text-xs border">
           <MemoizedMarkdown content={reasoning} id={id} size="small" />
         </div>
       )}

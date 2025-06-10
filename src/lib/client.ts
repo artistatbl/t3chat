@@ -1,10 +1,23 @@
-import type { AppRouter } from "@/server"
 import { createClient } from "jstack"
+import type { AppRouter } from "@/server"
 
-/**
- * Your type-safe API client
- * @see https://jstack.app/docs/backend/api-client
- */
 export const client = createClient<AppRouter>({
-  baseUrl: "http://localhost:3000/api",
+  baseUrl: `${getBaseUrl()}/api`,
+  credentials: 'include',
 })
+
+function getBaseUrl() {
+  // Check for browser environment first
+  if (typeof window !== 'undefined') {
+    // Use the current hostname in production
+    return window.location.origin
+  }
+  
+  // For server-side rendering with Vercel
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  
+  // For local development
+  return `http://localhost:3000`
+}

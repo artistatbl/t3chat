@@ -27,7 +27,7 @@ interface ChatInputProps {
   input: UseChatHelpers['input'];
   status: UseChatHelpers['status'];
   setInput: UseChatHelpers['setInput'];
-  append: UseChatHelpers['append'];
+  append: (message: UIMessage) => Promise<void>;
   stop: UseChatHelpers['stop'];
 }
 
@@ -56,8 +56,11 @@ function PureChatInput({
   append,
   stop,
 }: ChatInputProps) {
-  const canChat = useAPIKeyStore((state) => state.hasRequiredKeys());
+  const getKey = useAPIKeyStore((state) => state.getKey);
+  const selectedModel = useModelStore((state) => state.selectedModel);
   const [showAPIKeyDialog, setShowAPIKeyDialog] = useState(false);
+  // Add state to preserve input when showing API key dialog
+  const [pendingInput, setPendingInput] = useState('');
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 72,
@@ -75,6 +78,13 @@ function PureChatInput({
 
   const { complete } = useMessageSummary();
 
+  // Update the hasApiKeyForCurrentModel function in PureChatInput
+  const hasApiKeyForCurrentModel = useCallback(() => {
+    const modelConfig = getModelConfig(selectedModel);
+    const apiKey = getKey(modelConfig.provider);
+    return !!apiKey;
+  }, [getKey, selectedModel]);
+
   const handleSubmit = useCallback(async () => {
     const currentInput = textareaRef.current?.value || input;
 
@@ -85,8 +95,10 @@ function PureChatInput({
     )
       return;
 
-    // Check if user has API keys before proceeding
-    if (!canChat) {
+    // Check if user has API key for the selected model before proceeding
+    if (!hasApiKeyForCurrentModel()) {
+      // Preserve the input before showing the dialog
+      setPendingInput(currentInput.trim());
       setShowAPIKeyDialog(true);
       return;
     }
@@ -117,13 +129,31 @@ function PureChatInput({
     threadId,
     complete,
     router,
-    canChat,
+    hasApiKeyForCurrentModel,
   ]);
 
   const handleAPIKeySuccess = useCallback(() => {
-    // After API key is saved, automatically submit the message
-    handleSubmit();
-  }, [handleSubmit]);
+    // Use the preserved input instead of current input
+    if (!pendingInput.trim()) return;
+
+    const messageId = uuidv4();
+
+    if (!id) {
+      router.push(`/chat?thread=${threadId}`);
+      complete(pendingInput, {
+        body: { threadId, messageId, isTitle: true },
+      });
+    } else {
+      complete(pendingInput, { body: { messageId, threadId } });
+    }
+
+    const userMessage = createUserMessage(messageId, pendingInput);
+    append(userMessage);
+    setInput('');
+    setPendingInput(''); // Clear the pending input
+    adjustHeight(true);
+    setShowAPIKeyDialog(false);
+  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -185,7 +215,13 @@ function PureChatInput({
       
       <APIKeyDialog
         open={showAPIKeyDialog}
-        onOpenChange={setShowAPIKeyDialog}
+        onOpenChange={(open) => {
+          setShowAPIKeyDialog(open);
+          // Clear pending input if dialog is closed without success
+          if (!open) {
+            setPendingInput('');
+          }
+        }}
         onSuccess={handleAPIKeySuccess}
       />
     </>
@@ -204,7 +240,7 @@ const PureChatModelDropdown = () => {
   
   const availableModels = useMemo(() => getAvailableModels(), []);
 
-  const isModelEnabled = useCallback(
+  const hasApiKeyForModel = useCallback(
     (model: AIModel) => {
       const modelConfig = getModelConfig(model);
       const apiKey = getKey(modelConfig.provider);
@@ -232,18 +268,22 @@ const PureChatModelDropdown = () => {
           className={cn('min-w-[10rem]', 'border-border', 'bg-popover')}
         >
           {availableModels.map((modelInfo) => {
-            const isEnabled = isModelEnabled(modelInfo.id);
+            const hasApiKey = hasApiKeyForModel(modelInfo.id);
             return (
               <DropdownMenuItem
                 key={modelInfo.id}
-                onSelect={() => isEnabled && setModel(modelInfo.id)}
-                disabled={!isEnabled}
+                onSelect={() => setModel(modelInfo.id)}
                 className={cn(
                   'flex items-center justify-between gap-2',
                   'cursor-pointer'
                 )}
               >
-                <span>{modelInfo.id}</span>
+                <div className="flex items-center gap-2">
+                  <span>{modelInfo.id}</span>
+                  {!hasApiKey && (
+                    <span className="text-xs text-muted-foreground">(No API key)</span>
+                  )}
+                </div>
                 {selectedModel === modelInfo.id && (
                   <Check
                     className="w-4 h-4 text-blue-500"

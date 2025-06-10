@@ -1,6 +1,7 @@
 import { j } from "./jstack"
 import { authRouter } from "./routers/auth-router"
 import { chatRouter } from "./routers/chat-router"
+import { completionRouter } from "./routers/completion-router"
 
 /**
  * This is your base API.
@@ -20,8 +21,8 @@ const api = j
  */
 const appRouter = j.mergeRouters(api, {
   user: authRouter,
-  chat: chatRouter, 
-
+  chat: chatRouter,
+  completion: completionRouter,
 })
 
 export type AppRouter = typeof appRouter

@@ -9,10 +9,10 @@ import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 interface MessageControlsProps {
   threadId: string;
   message: UIMessage;
-  setMessages: UseChatHelpers['setMessages'];
+  setMessages: (messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void;
   content: string;
   setMode?: Dispatch<SetStateAction<'view' | 'edit'>>;
-  reload: UseChatHelpers['reload'];
+  reload: () => void;
   stop: UseChatHelpers['stop'];
 }
 
@@ -74,7 +74,7 @@ export default function MessageControls({
   return (
     <div
       className={cn(
-        'opacity-0 group-hover:opacity-100 transition-opacity duration-100 flex gap-1',
+        'opacity-100 transition-opacity duration-100 flex gap-1',
         {
           'absolute mt-5 right-2': message.role === 'user',
         }

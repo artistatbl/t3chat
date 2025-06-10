@@ -19,8 +19,8 @@ function PureMessage({
 }: {
   threadId: string;
   message: UIMessage;
-  setMessages: UseChatHelpers['setMessages'];
-  reload: UseChatHelpers['reload'];
+  setMessages: (messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void;
+  reload: () => void;
   isStreaming: boolean;
   registerRef: (id: string, ref: HTMLDivElement | null) => void;
   stop: UseChatHelpers['stop'];

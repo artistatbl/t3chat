@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -16,15 +16,31 @@ import { Input } from '@/components/ui/input';
 import { Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
+import { useModelStore } from '@/app/frontend/stores/ModelStore';
+import { getModelConfig, getAvailableModels } from '@/lib/models';
 import { Badge } from '../ui/badge';
 
-const formSchema = z.object({
-  google: z.string().trim().min(1, {
-    message: 'Google API key is required to start chatting',
-  }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+// Provider configurations
+const PROVIDER_CONFIG = {
+  google: {
+    name: 'Google',
+    placeholder: 'AIza...',
+    createUrl: 'https://aistudio.google.com/apikey',
+    models: ['Gemini 2.5 Flash', 'gemini-1.5-pro']
+  },
+  openai: {
+    name: 'OpenAI',
+    placeholder: 'sk-...',
+    createUrl: 'https://platform.openai.com/api-keys',
+    models: ['gpt-4o', 'gpt-4-turbo']
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    placeholder: 'sk-or-...',
+    createUrl: 'https://openrouter.ai/keys',
+    models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku', 'llama-3-70b', 'llama-3-8b', 'mistral-large', 'command-r-plus']
+  }
+};
 
 interface APIKeyDialogProps {
   open: boolean;
@@ -34,7 +50,24 @@ interface APIKeyDialogProps {
 
 export default function APIKeyDialog({ open, onOpenChange, onSuccess }: APIKeyDialogProps) {
   const { setKeys } = useAPIKeyStore();
+  const selectedModel = useModelStore((state) => state.selectedModel);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get the provider for the selected model
+  const modelConfig = useMemo(() => getModelConfig(selectedModel), [selectedModel]);
+  const provider = modelConfig.provider;
+  const providerInfo = PROVIDER_CONFIG[provider];
+
+  // Create dynamic form schema based on provider
+  const formSchema = useMemo(() => {
+    return z.object({
+      [provider]: z.string().trim().min(1, {
+        message: `${providerInfo.name} API key is required to use ${selectedModel}`,
+      }),
+    });
+  }, [provider, providerInfo.name, selectedModel]);
+
+  type FormValues = z.infer<typeof formSchema>;
 
   const {
     register,
@@ -44,8 +77,8 @@ export default function APIKeyDialog({ open, onOpenChange, onSuccess }: APIKeyDi
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      google: '',
-    },
+      [provider]: '',
+    } as FormValues,
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -56,54 +89,66 @@ export default function APIKeyDialog({ open, onOpenChange, onSuccess }: APIKeyDi
       reset();
       onSuccess();
       onOpenChange(false);
-    } catch{
+    } catch {
       toast.error('Failed to save API key');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Get models for this provider to show in badges
+  const providerModels = useMemo(() => {
+    return getAvailableModels().filter(model => {
+      const config = getModelConfig(model.id);
+      return config.provider === provider;
+    });
+  }, [provider]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2">
             <Key className="h-5 w-5" />
-            <DialogTitle>Add API Key to Start Chatting</DialogTitle>
-          </div>
+            {providerInfo.name} API Key Required
+          </DialogTitle>
           <DialogDescription>
-            You need to provide an API key to start chatting with AI models. Your key is stored locally in your browser.
+            You need to provide a {providerInfo.name} API key to use {selectedModel}. Your key will be stored locally in your browser.
           </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="google" className="text-sm font-medium">
-              Google API Key <span className="text-muted-foreground">(Required)</span>
+            <label htmlFor={provider} className="text-sm font-medium">
+              {providerInfo.name} API Key <span className="text-muted-foreground">(Required)</span>
             </label>
             
-            <div className="flex gap-2 mb-2">
-              <Badge>Gemini 2.5 Flash</Badge>
-              <Badge>Gemini 2.5 Pro</Badge>
+            <div className="flex gap-2 mb-2 flex-wrap">
+              {providerModels.map((model) => (
+                <Badge key={model.id} variant={model.id === selectedModel ? "default" : "secondary"}>
+                  {model.name}
+                </Badge>
+              ))}
             </div>
             
             <Input
-              id="google"
-              placeholder="AIza..."
-              {...register('google')}
-              className={errors.google ? 'border-red-500' : ''}
+              id={provider}
+              placeholder={providerInfo.placeholder}
+              {...register(provider)}
+              className={errors[provider] ? 'border-red-500' : ''}
             />
             
             <a
-              href="https://aistudio.google.com/apikey"
+              href={providerInfo.createUrl}
               target="_blank"
-              className="text-sm text-blue-500 inline w-fit"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 inline w-fit hover:underline"
             >
-              Create Google API Key
+              Create {providerInfo.name} API Key
             </a>
             
-            {errors.google && (
-              <p className="text-sm text-red-500">{errors.google.message}</p>
+            {errors[provider] && (
+              <p className="text-sm text-red-500">{errors[provider]?.message}</p>
             )}
           </div>
           

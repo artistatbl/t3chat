@@ -1,4 +1,4 @@
-import { useChat } from '@ai-sdk/react';
+import { useState, useCallback, useEffect } from 'react';
 import Messages from './Messages';
 import ChatInput from './ChatInput';
 import ChatNavigator from './ChatNavigator';
@@ -6,21 +6,31 @@ import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 import { useModelStore } from '@/app/frontend/stores/ModelStore';
+import { client } from '@/lib/client';
 import ThemeToggler from '../ui/ThemeToggler';
 import { SidebarTrigger, useSidebar } from '../ui/sidebar';
 import { Button } from '../ui/button';
 import { MessageSquareMore } from 'lucide-react';
 import { useChatNavigator } from '@/app/frontend/hooks/useChatNavigator';
+import { toast } from 'sonner';
 
 interface ChatProps {
   threadId: string;
   initialMessages: UIMessage[];
 }
 
+type ChatStatus = 'ready' | 'streaming' | 'submitted' | 'error';
+
 export default function Chat({ threadId, initialMessages }: ChatProps) {
   const { getKey } = useAPIKeyStore();
   const selectedModel = useModelStore((state) => state.selectedModel);
   const modelConfig = useModelStore((state) => state.getModelConfig());
+
+  const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
+  const [input, setInput] = useState('');
+  const [status, setStatus] = useState<ChatStatus>('ready');
+  const [error, setError] = useState<Error | undefined>(undefined);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const {
     isNavigatorVisible,
@@ -30,46 +40,222 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     scrollToMessage,
   } = useChatNavigator();
 
-  const {
-    messages,
-    input,
-    status,
-    setInput,
-    setMessages,
-    append,
-    stop,
-    reload,
-    error,
-  } = useChat({
-    id: threadId,
-    initialMessages,
-    experimental_throttle: 50,
-    onFinish: async ({ parts }) => {
-      // const aiMessage: UIMessage = {
-      //   id: uuidv4(),
-      //   parts: parts as UIMessage['parts'],
-      //   role: 'assistant',
-      //   content: '',
-      //   createdAt: new Date(),
-      // };
+  // Initialize messages
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
-      try {
-        // await createMessage(threadId, aiMessage);
-      } catch (error) {
-        console.error(error);
+  const append = useCallback(async (message: UIMessage) => {
+    if (status === 'streaming' || status === 'submitted') return;
+
+    setMessages(prev => [...prev, message]);
+    setStatus('submitted');
+    setError(undefined);
+  
+    // Create abort controller for this request
+    const controller = new AbortController();
+    setAbortController(controller);
+  
+    try {
+      const apiKey = getKey(modelConfig.provider);
+      if (!apiKey) {
+        throw new Error('API key not found');
       }
-    },
-    headers: {
-      [modelConfig.headerKey]: getKey(modelConfig.provider) || '',
-    },
-    body: {
-      model: selectedModel,
-    },
-  });
+  
+      // Prepare messages for API - improved content extraction
+      const apiMessages = [...messages, message].map(msg => {
+        let content = '';
+        
+        // First try to get content from the content property
+        if (msg.content && msg.content.trim()) {
+          content = msg.content.trim();
+        }
+        // If content is empty, try to extract from parts
+        else if (msg.parts && msg.parts.length > 0) {
+          content = msg.parts
+            .filter(part => part.type === 'text')
+            .map(part => {
+              // Type guard to ensure we're working with TextUIPart
+              if (part.type === 'text' && 'text' in part) {
+                return part.text?.trim() || '';
+              }
+              return '';
+            })
+            .filter(text => text.length > 0)
+            .join('');
+        }
+        
+        return {
+          role: msg.role,
+          content: content,
+        };
+      });
+  
+      // Filter out messages with empty content and non-conversation roles
+      const validMessages = apiMessages.filter(msg => 
+        msg.role !== 'data' && msg.content && msg.content.trim().length > 0
+      ) as { role: 'system' | 'user' | 'assistant'; content: string; }[];
+  
+      setStatus('streaming');
+  
+      // Call the streaming endpoint
+      const response = await client.chat.streamCompletion.$post({
+        messages: validMessages,
+        model: selectedModel,
+      }, {
+        headers: {
+          [modelConfig.headerKey]: apiKey,
+        },
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+  
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body');
+      }
+  
+      const decoder = new TextDecoder();
+      const assistantMessage: UIMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: '',
+        parts: [{ type: 'text', text: '' }],
+        createdAt: new Date(),
+      };
+  
+      // Add assistant message to state
+      setMessages(prev => [...prev, assistantMessage]);
+  
+      let accumulatedContent = '';
+  
+      // In the streaming while loop, add these specific debug logs:
+  
+      // Replace the entire streaming while loop with this:
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log('✅ Stream done, final content length:', accumulatedContent.length);
+          break;
+        }
+        if (controller.signal.aborted) break;
+  
+        const chunk = decoder.decode(value, { stream: true });
+        console.log('📦 Raw chunk received:', chunk);
+        
+        const lines = chunk.split('\n');
+        console.log('📄 Lines in chunk:', lines);
+  
+        for (const line of lines) {
+          console.log('🔍 Processing line:', line);
+          
+          // Handle AI SDK streaming format
+          if (line.startsWith('0:')) {
+            // Text chunk format: 0:"content"
+            try {
+              const textContent = line.slice(2); // Remove '0:' prefix
+              const parsedContent = JSON.parse(textContent); // Parse the quoted string
+              
+              accumulatedContent += parsedContent;
+              console.log('✨ SUCCESS: Added text content:', parsedContent);
+              console.log('📚 Total accumulated:', accumulatedContent);
+              
+              // Update the assistant message
+              setMessages(prev => {
+                const newMessages = [...prev];
+                const lastIndex = newMessages.length - 1;
+                const lastMessage = newMessages[lastIndex];
+                
+                if (lastMessage && lastMessage.role === 'assistant') {
+                  // Create completely new object to trigger React re-render
+                  newMessages[lastIndex] = {
+                    ...lastMessage,
+                    content: accumulatedContent,
+                    parts: [{ type: 'text', text: accumulatedContent }],
+                  };
+                  console.log('🔄 Updated assistant message:', newMessages[lastIndex]);
+                } else {
+                  console.warn('⚠️ Last message is not assistant:', lastMessage);
+                }
+                return newMessages;
+              });
+            } catch (error) {
+              console.warn('⚠️ Failed to parse text chunk:', line, error);
+            }
+          } else if (line.startsWith('e:')) {
+            // End/finish data: e:{"finishReason":"stop",...}
+            console.log('🏁 Received finish signal:', line);
+          } else if (line.startsWith('d:')) {
+            // Done data: d:{"finishReason":"stop",...}
+            console.log('✅ Received done signal:', line);
+            break; // Exit the loop when done
+          } else if (line.trim() === '') {
+            // Empty line, skip
+            continue;
+          } else {
+            console.log('⏭️ Unknown line format:', line);
+          }
+        }
+      }
+  
+      // Ensure final message state is set after streaming completes
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastIndex = newMessages.length - 1;
+        
+        if (newMessages[lastIndex]?.role === 'assistant') {
+          newMessages[lastIndex] = {
+            ...newMessages[lastIndex],
+            content: accumulatedContent,
+            parts: [{ type: 'text', text: accumulatedContent }],
+          };
+        }
+        return newMessages;
+      });
+  
+      setStatus('ready');
+    } catch (err) {
+      console.error('Chat error:', err);
+      setError(err as Error);
+      setStatus('error');
+      toast.error('Failed to send message');
+    } finally {
+      setAbortController(null);
+    }
+  }, [messages, status, selectedModel, modelConfig, getKey]);
+
+  const stop = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+      setStatus('ready');
+    }
+  }, [abortController]);
+
+  const reload = useCallback(() => {
+    if (messages.length > 0) {
+      const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+      if (lastUserMessage) {
+        // Remove the last assistant message if it exists
+        const newMessages = messages.filter((_, index) => {
+          const isLastAssistant = index === messages.length - 1 && messages[index]?.role === 'assistant';
+          return !isLastAssistant;
+        });
+        setMessages(newMessages);
+        append(lastUserMessage);
+      }
+    }
+  }, [messages, append]);
 
   return (
     <div className="relative w-full">
-       <ChatSidebarTrigger /> 
+      <ChatSidebarTrigger /> 
       <main
         className={`flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out`}
       >

@@ -10,35 +10,50 @@ function PureMessages({
   threadId,
   messages,
   status,
+  error,
   setMessages,
   reload,
-  error,
   stop,
   registerRef,
 }: {
   threadId: string;
   messages: UIMessage[];
-  setMessages: UseChatHelpers['setMessages'];
-  reload: UseChatHelpers['reload'];
+  setMessages: (messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void;
+  reload: () => void;
   status: UseChatHelpers['status'];
   error: UseChatHelpers['error'];
   stop: UseChatHelpers['stop'];
   registerRef: (id: string, ref: HTMLDivElement | null) => void;
 }) {
+  console.log('🖼️ Messages component rendering:', {
+    messageCount: messages.length,
+    status,
+    messages: messages.map(m => ({ id: m.id, role: m.role, contentLength: m.content?.length || 0 }))
+  });
+
   return (
     <section className="flex flex-col space-y-12">
-      {messages.map((message, index) => (
-        <PreviewMessage
-          key={message.id}
-          threadId={threadId}
-          message={message}
-          isStreaming={status === 'streaming' && messages.length - 1 === index}
-          setMessages={setMessages}
-          reload={reload}
-          registerRef={registerRef}
-          stop={stop}
-        />
-      ))}
+      {messages.map((message, index) => {
+        console.log(`🎭 Rendering message ${index}:`, {
+          id: message.id,
+          role: message.role,
+          content: message.content?.substring(0, 50) + '...',
+          partsCount: message.parts?.length
+        });
+        
+        return (
+          <PreviewMessage
+            key={message.id}
+            threadId={threadId}
+            message={message}
+            isStreaming={status === 'streaming' && messages.length - 1 === index}
+            setMessages={setMessages}
+            reload={reload}
+            registerRef={registerRef}
+            stop={stop}
+          />
+        );
+      })}
       {status === 'submitted' && <MessageLoading />}
       {error && <Error message={error.message} />}
     </section>

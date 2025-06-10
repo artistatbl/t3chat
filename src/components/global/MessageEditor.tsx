@@ -13,16 +13,16 @@ export default function MessageEditor({
   message,
   content,
   setMessages,
-  reload,
   setMode,
+  reload,
   stop,
 }: {
   threadId: string;
   message: UIMessage;
   content: string;
-  setMessages: UseChatHelpers['setMessages'];
+  setMessages: (messages: UIMessage[] | ((messages: UIMessage[]) => UIMessage[])) => void;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
-  reload: UseChatHelpers['reload'];
+  reload: () => void;
   stop: UseChatHelpers['stop'];
 }) {
   const [draftContent, setDraftContent] = useState(content);
