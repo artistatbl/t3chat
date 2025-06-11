@@ -37,7 +37,6 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   const {
     isNavigatorVisible,
@@ -47,23 +46,33 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     scrollToMessage,
   } = useChatNavigator();
 
-  // Initialize messages from Convex when available
+  // Simplified initialization logic - load messages from Convex when available
   useEffect(() => {
-    if (convexMessages && !isInitialized) {
-      const uiMessages: UIMessage[] = convexMessages.map(msg => ({
-        id: msg.uuid,
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-        createdAt: new Date(msg._creationTime),
-      }));
-      setMessages(uiMessages);
-      setIsInitialized(true);
-    } else if (!convexMessages && !isInitialized) {
-      // No existing messages, use initial messages
-      setMessages(initialMessages);
-      setIsInitialized(true);
+    console.log('🔄 Chat initialization effect:', {
+      threadId,
+      convexMessages: convexMessages?.length || 0,
+      initialMessages: initialMessages.length
+    });
+
+    if (convexMessages !== undefined) {
+      if (convexMessages.length > 0) {
+        // Convert Convex messages to UI messages
+        const uiMessages: UIMessage[] = convexMessages.map(msg => ({
+          parts: [{ type: 'text', text: msg.content }],
+          id: msg.uuid,
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          createdAt: new Date(msg._creationTime),
+        }));
+        console.log('✅ Loading messages from Convex:', uiMessages.length);
+        setMessages(uiMessages);
+      } else {
+        // No messages in database, use initial messages
+        console.log('📝 No messages in DB, using initial messages:', initialMessages.length);
+        setMessages(initialMessages);
+      }
     }
-  }, [convexMessages, initialMessages, isInitialized]);
+  }, [convexMessages, threadId, initialMessages]);
 
   const append = useCallback(async (message: UIMessage) => {
     if (status === 'streaming' || status === 'submitted') return;

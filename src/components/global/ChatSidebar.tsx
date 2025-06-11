@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { buttonVariants } from '../ui/button';
 import UserProfile from './UserProfile';
-import Link from 'next/link';
+import { Link } from 'react-router';
 import { memo } from 'react';
 // import { useThreadStore } from '@/app/frontend/stores/ThreadStore';3
 import { MessageSquareMore } from 'lucide-react';
@@ -40,7 +40,7 @@ export default function ChatSidebar() {
                 {chats?.map((chat) => (
                   <Link
                     key={chat.uuid}
-                    href={`/chat/${chat.uuid}`}
+                    to={`/chat/${chat.uuid}`}
                     className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted"
                   >
                     <MessageSquareMore className="w-4 h-4" />
@@ -65,7 +65,7 @@ function PureHeader() {
         Chat<span className="">0</span>
       </h1>
       <Link
-        href="/"
+        to="/"
         className={buttonVariants({
           variant: 'default',
           className: 'w-full',
