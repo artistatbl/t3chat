@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import useAutoResizeTextarea from '@/app/hooks/useAutoResizeTextArea';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 import { useModelStore } from '@/app/frontend/stores/ModelStore';
 import { AIModel, getModelConfig, getAvailableModels } from '@/lib/models';
@@ -68,8 +68,8 @@ function PureChatInput({
   });
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const id = searchParams.get('thread');
+  // For dynamic routes, we check if we're on a specific thread by checking if threadId is not a new UUID
+  const id = threadId && threadId.length > 0 ? threadId : null;
 
   const isDisabled = useMemo(
     () => !input.trim() || status === 'streaming' || status === 'submitted',
@@ -106,7 +106,7 @@ function PureChatInput({
     const messageId = uuidv4();
 
     if (!id) {
-      router.push(`/chat?thread=${threadId}`);
+      router.push(`/chat/${threadId}`);
       complete(currentInput.trim(), {
         body: { threadId, messageId, isTitle: true },
       });
@@ -139,7 +139,7 @@ function PureChatInput({
     const messageId = uuidv4();
 
     if (!id) {
-      router.push(`/chat?thread=${threadId}`);
+      router.push(`/chat/${threadId}`);
       complete(pendingInput, {
         body: { threadId, messageId, isTitle: true },
       });
