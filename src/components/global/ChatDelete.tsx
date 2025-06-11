@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { AlertTriangle, Trash2 } from 'lucide-react';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Button } from '../ui/button';
+import { useState } from "react";
+import { AlertTriangle, Trash2 } from "lucide-react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from '../ui/dialog';
-import { useNavigate } from 'react-router';
+} from "../ui/dialog";
+import { useNavigate } from "react-router";
 
 interface ChatDeleteProps {
   chatUuid: string;
@@ -52,14 +52,14 @@ export default function ChatDelete({
       await deleteChat({ uuid: chatUuid, userId });
       setIsOpen(false);
       if (redirectToHome) {
-        navigate('/'); // Client-side navigation, no hard refresh
+        navigate("/"); // Client-side navigation, no hard refresh
         return;
       } else if (onDeleteSuccess) {
         onDeleteSuccess();
       }
     } catch (err) {
-      console.error('Failed to delete chat:', err);
-      setError('Failed to delete chat. Please try again.');
+      console.error("Failed to delete chat:", err);
+      setError("Failed to delete chat. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -70,7 +70,7 @@ export default function ChatDelete({
       <Button
         variant="ghost"
         size="sm"
-        className="absolute right-1 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6 hover:bg-red-100 hover:text-red-600"
+        className="opacity-0 group-hover/menu-item:opacity-100 transition-opacity p-1 h-6 w-6 hover:bg-red-100 hover:text-red-600"
         onClick={handleOpenDialog}
         title="Delete chat"
       >
@@ -85,7 +85,7 @@ export default function ChatDelete({
               Delete Chat
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete “{chatTitle || 'this chat'}”? This
+              Are you sure you want to delete “{chatTitle || "this chat"}”? This
               action cannot be undone and all messages will be permanently lost.
             </DialogDescription>
           </DialogHeader>
@@ -109,7 +109,7 @@ export default function ChatDelete({
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete Chat'}
+              {isDeleting ? "Deleting..." : "Delete Chat"}
             </Button>
           </DialogFooter>
         </DialogContent>

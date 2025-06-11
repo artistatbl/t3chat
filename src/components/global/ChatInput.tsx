@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import useAutoResizeTextarea from '@/app/hooks/useAutoResizeTextArea';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 import { useModelStore } from '@/app/frontend/stores/ModelStore';
 import { AIModel, getModelConfig, getAvailableModels } from '@/lib/models';
@@ -67,7 +67,7 @@ function PureChatInput({
     maxHeight: 200,
   });
 
-  const router = useRouter();
+  const navigate = useNavigate();
   // For dynamic routes, we check if we're on a specific thread by checking if threadId is not a new UUID
   const id = threadId && threadId.length > 0 ? threadId : null;
 
@@ -106,7 +106,7 @@ function PureChatInput({
     const messageId = uuidv4();
 
     if (!id) {
-      router.push(`/chat/${threadId}`);
+      navigate(`/chat/${threadId}`);
       complete(currentInput.trim(), {
         body: { threadId, messageId, isTitle: true },
       });
@@ -128,7 +128,7 @@ function PureChatInput({
     textareaRef,
     threadId,
     complete,
-    router,
+    navigate,
     hasApiKeyForCurrentModel,
   ]);
 
@@ -139,7 +139,7 @@ function PureChatInput({
     const messageId = uuidv4();
 
     if (!id) {
-      router.push(`/chat/${threadId}`);
+      navigate(`/chat/${threadId}`);
       complete(pendingInput, {
         body: { threadId, messageId, isTitle: true },
       });
@@ -153,7 +153,7 @@ function PureChatInput({
     setPendingInput(''); // Clear the pending input
     adjustHeight(true);
     setShowAPIKeyDialog(false);
-  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight]);
+  }, [pendingInput, id, navigate, threadId, complete, append, setInput, adjustHeight]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

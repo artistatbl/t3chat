@@ -19,6 +19,7 @@ import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import ChatDelete from './ChatDelete';
+import { SidebarMenuItem } from '@/components/ui/sidebar';
 
 export default function ChatSidebar() {
   const { user } = useUser();
@@ -38,23 +39,25 @@ export default function ChatSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {chats?.map((chat) => (
-                  <div key={chat.uuid} className="relative group">
+                  <SidebarMenuItem key={chat.uuid}>
                     <Link
                       to={`/chat/${chat.uuid}`}
-                      className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted pr-8"
+                      className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted w-full"
                     >
                       <MessageSquareMore className="w-4 h-4" />
                       <span className="truncate">{chat.title || 'New Chat'}</span>
                     </Link>
                     {user && (
-                      <ChatDelete
-                        chatUuid={chat.uuid}
-                        chatTitle={chat.title || 'New Chat'}
-                        userId={user.id}
-                        redirectToHome={isThreadRoute}
-                      />
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <ChatDelete
+                          chatUuid={chat.uuid}
+                          chatTitle={chat.title || 'New Chat'}
+                          userId={user.id}
+                          redirectToHome={isThreadRoute}
+                        />
+                      </div>
                     )}
-                  </div>
+                  </SidebarMenuItem>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
