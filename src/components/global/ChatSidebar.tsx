@@ -12,22 +12,22 @@ import {
 } from '@/components/ui/sidebar';
 import { buttonVariants } from '../ui/button';
 import UserProfile from './UserProfile';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { memo } from 'react';
-// import { useThreadStore } from '@/app/frontend/stores/ThreadStore';3
 import { MessageSquareMore } from 'lucide-react';
-
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
+import ChatDelete from './ChatDelete';
 
 export default function ChatSidebar() {
-  // Replace ThreadStore with Convex query
   const { user } = useUser();
   const chats = useQuery(
     api.chats.getChatsByUser,
     user ? { userId: user.id } : "skip"
   );
+  const location = useLocation();
+  const isThreadRoute = location.pathname.startsWith('/chat/');
 
   return (
     <Sidebar>
@@ -38,14 +38,23 @@ export default function ChatSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {chats?.map((chat) => (
-                  <Link
-                    key={chat.uuid}
-                    to={`/chat/${chat.uuid}`}
-                    className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted"
-                  >
-                    <MessageSquareMore className="w-4 h-4" />
-                    <span className="truncate">{chat.title || 'New Chat'}</span>
-                  </Link>
+                  <div key={chat.uuid} className="relative group">
+                    <Link
+                      to={`/chat/${chat.uuid}`}
+                      className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted pr-8"
+                    >
+                      <MessageSquareMore className="w-4 h-4" />
+                      <span className="truncate">{chat.title || 'New Chat'}</span>
+                    </Link>
+                    {user && (
+                      <ChatDelete
+                        chatUuid={chat.uuid}
+                        chatTitle={chat.title || 'New Chat'}
+                        userId={user.id}
+                        redirectToHome={isThreadRoute}
+                      />
+                    )}
+                  </div>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
