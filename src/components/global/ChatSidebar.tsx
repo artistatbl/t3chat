@@ -14,11 +14,20 @@ import { buttonVariants } from '../ui/button';
 import UserProfile from './UserProfile';
 import Link from 'next/link';
 import { memo } from 'react';
-import { useThreadStore } from '@/app/frontend/stores/ThreadStore';
+// import { useThreadStore } from '@/app/frontend/stores/ThreadStore';3
 import { MessageSquareMore } from 'lucide-react';
 
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { useUser } from '@clerk/nextjs';
+
 export default function ChatSidebar() {
-  const threads = useThreadStore((state) => state.threads);
+  // Replace ThreadStore with Convex query
+  const { user } = useUser();
+  const chats = useQuery(
+    api.chats.getChatsByUser,
+    user ? { userId: user.id } : "skip"
+  );
 
   return (
     <Sidebar>
@@ -28,14 +37,14 @@ export default function ChatSidebar() {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {threads.map((thread) => (
+                {chats?.map((chat) => (
                   <Link
-                    key={thread.id}
-                    href={`/chat/${thread.id}`}
+                    key={chat.uuid}
+                    href={`/chat/${chat.uuid}`}
                     className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted"
                   >
                     <MessageSquareMore className="w-4 h-4" />
-                    <span className="truncate">{thread.name}</span>
+                    <span className="truncate">{chat.title || 'New Chat'}</span>
                   </Link>
                 ))}
               </SidebarMenu>

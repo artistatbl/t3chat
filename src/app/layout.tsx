@@ -9,6 +9,7 @@ import { Providers } from "@/components/providers/providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -42,11 +43,13 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Providers>
-              <ConvexClientProvider>{children}</ConvexClientProvider>
+              <ConvexClientProvider>
+                {children}
+              </ConvexClientProvider>
             </Providers>
-            <Toaster richColors position="top-right" />
+            <Toaster />
+            <Analytics />
           </ThemeProvider>
-          <Analytics />
         </body>
       </html>
     </ClerkProvider>

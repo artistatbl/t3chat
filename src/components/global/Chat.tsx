@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 import { useModelStore } from '@/app/frontend/stores/ModelStore';
 import { useThreadStore } from '@/app/frontend/stores/ThreadStore';
+import { useConvexChat } from '@/app/hooks/useConvexChat';
 import { client } from '@/lib/client';
 import ThemeToggler from '../ui/ThemeToggler';
 import { SidebarTrigger, useSidebar } from '../ui/sidebar';
@@ -27,12 +28,16 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
   const selectedModel = useModelStore((state) => state.selectedModel);
   const modelConfig = useModelStore((state) => state.getModelConfig());
   const addThread = useThreadStore((state) => state.addThread);
+  
+  // Add Convex chat hook
+  const { saveUserMessage, saveAssistantMessage, saveChatTitle, messages: convexMessages } = useConvexChat(threadId);
 
   const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const {
     isNavigatorVisible,
@@ -42,10 +47,23 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     scrollToMessage,
   } = useChatNavigator();
 
-  // Initialize messages
+  // Initialize messages from Convex when available
   useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages]);
+    if (convexMessages && !isInitialized) {
+      const uiMessages: UIMessage[] = convexMessages.map(msg => ({
+        id: msg.uuid,
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+        createdAt: new Date(msg._creationTime),
+      }));
+      setMessages(uiMessages);
+      setIsInitialized(true);
+    } else if (!convexMessages && !isInitialized) {
+      // No existing messages, use initial messages
+      setMessages(initialMessages);
+      setIsInitialized(true);
+    }
+  }, [convexMessages, initialMessages, isInitialized]);
 
   const append = useCallback(async (message: UIMessage) => {
     if (status === 'streaming' || status === 'submitted') return;
@@ -54,10 +72,15 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     setStatus('submitted');
     setError(undefined);
 
+    // Save user message to database
+    await saveUserMessage(message);
+
     // Create thread name from first message
     if (messages.length === 0) {
       const threadName = message.content.slice(0, 30) + (message.content.length > 30 ? '...' : '');
       addThread(threadId, threadName);
+      // Save chat title to database
+      await saveChatTitle(threadName);
     }
 
     // Create abort controller for this request
@@ -140,10 +163,6 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
       setMessages(prev => [...prev, assistantMessage]);
   
       let accumulatedContent = '';
-  
-      // In the streaming while loop, add these specific debug logs:
-  
-      // Replace the entire streaming while loop with this:
       
       while (true) {
         const { done, value } = await reader.read();
@@ -226,6 +245,14 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
         }
         return newMessages;
       });
+
+      // Save the completed assistant message to database
+      const finalAssistantMessage: UIMessage = {
+        ...assistantMessage,
+        content: accumulatedContent,
+        parts: [{ type: 'text', text: accumulatedContent }],
+      };
+      await saveAssistantMessage(finalAssistantMessage);
   
       setStatus('ready');
     } catch (err) {
@@ -236,7 +263,7 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     } finally {
       setAbortController(null);
     }
-  }, [messages, status, selectedModel, modelConfig, getKey, threadId, addThread]);
+  }, [messages, status, selectedModel, modelConfig, getKey, threadId, addThread, saveUserMessage, saveAssistantMessage, saveChatTitle]);
 
   const stop = useCallback(() => {
     if (abortController) {
