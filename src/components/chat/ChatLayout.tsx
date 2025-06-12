@@ -1,13 +1,17 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
- import ChatSidebar from '@/components/chat/ChatSidebar';
-import { Outlet } from 'react-router';
+import ChatSidebar from '@/components/chat/ChatSidebar';
+import { ReactNode } from 'react';
 
-export default function ChatLayout() {
+interface ChatLayoutProps {
+  children: ReactNode;
+}
+
+export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
     <SidebarProvider>
       <ChatSidebar />
       <div className="flex-1 relative">
-        <Outlet />
+        {children}
       </div>
     </SidebarProvider>
   );

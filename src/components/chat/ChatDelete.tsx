@@ -84,7 +84,7 @@ export default function ChatDelete({
               Delete Chat
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{chatTitle || "this chat"}"? This
+              Are you sure you want to delete &ldquo;{chatTitle || "this chat"}&rdquo;? This
               action cannot be undone and all messages will be permanently lost.
             </DialogDescription>
           </DialogHeader>

@@ -14,14 +14,22 @@ import { buttonVariants } from '../ui/button';
 import UserProfile from '../user/UserProfile';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { memo } from 'react';
-import { MessageSquareMore } from 'lucide-react';
+import { memo, useEffect } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import ChatDelete from './ChatDelete';
 import { SidebarMenuItem } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
+import { CommandPalette } from '../command-palette/CommandPalette';
+
+// Function to get cookie value
+function getCookie(name: string) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+  return null;
+}
 
 export default function ChatSidebar() {
   const { user } = useUser();
@@ -31,18 +39,28 @@ export default function ChatSidebar() {
   );
   const pathname = usePathname();
   const isThreadRoute = pathname?.startsWith('/chat/');
-  const { state } = useSidebar();
+  const { state, setOpen } = useSidebar();
+
+  // Restore sidebar state from cookie on mount
+  useEffect(() => {
+    const sidebarState = getCookie('sidebar_state');
+    if (sidebarState !== null) {
+      setOpen(sidebarState === 'true');
+    }
+  }, [setOpen]);
 
   return (
     <>
       {/* Floating trigger button that's visible when sidebar is collapsed */}
+      <CommandPalette />
       {state === 'collapsed' && (
-        <div className="fixed left-4 top-4 z-20 md:block hidden">
+        <div className="fixed left-4 top-4 z-20  dark:bg-stone-800   bg-zinc-100 rounded-sm md:block hidden">
           <SidebarTrigger />
         </div>
       )}
       <Sidebar>
         <div className="flex flex-col h-full p-2">
+
           <Header />
           <SidebarContent className="no-scrollbar">
             <SidebarGroup>
@@ -55,7 +73,6 @@ export default function ChatSidebar() {
                           href={`/chat/${chat.uuid}`}
                           className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted flex-1 min-w-0"
                         >
-                          <MessageSquareMore className="w-4 h-4 flex-shrink-0" />
                           <span className="truncate">{chat.title || 'New Chat'}</span>
                         </Link>
                         {user && (

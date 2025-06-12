@@ -1,6 +1,7 @@
 'use client';
 
 import Chat from '@/components/chat/Chat';
+import ChatLayout from '@/components/chat/ChatLayout';
 import { UIMessage } from 'ai';
 import { useParams } from 'react-router';
 
@@ -10,7 +11,9 @@ export default function ChatThreadPage() {
   const initialMessages: UIMessage[] = [];
 
   return (
-    <Chat threadId={threadId} initialMessages={initialMessages} />
+    <ChatLayout>
+      <Chat threadId={threadId} initialMessages={initialMessages} />
+    </ChatLayout>
 
   );
 }

@@ -4,8 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Chat from '@/components/chat/Chat';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import ChatSidebar from '@/components/chat/ChatSidebar';
+import ChatLayout from '@/components/chat/ChatLayout';
 
 export default function Page() {
   const router = useRouter();
@@ -17,16 +16,12 @@ export default function Page() {
   };
   
   return (
-    <SidebarProvider>
-
-        <ChatSidebar />
-
-          <Chat 
-            threadId={threadId} 
-            initialMessages={[]} 
-            onMessageSubmit={handleStartChat} 
-          />
-
-    </SidebarProvider>
+    <ChatLayout>
+      <Chat 
+        threadId={threadId} 
+        initialMessages={[]} 
+        onMessageSubmit={handleStartChat} 
+      />
+    </ChatLayout>
   );
 }
