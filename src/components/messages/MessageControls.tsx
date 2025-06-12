@@ -68,7 +68,7 @@ export default function MessageControls({
   return (
     <div
       className={cn(
-        'opacity-100 transition-opacity duration-100 flex gap-1',
+        'opacity-0 group-hover:opacity-100 transition-opacity duration-100 flex gap-1',
         {
           'absolute mt-5 right-2': message.role === 'user',
         }
