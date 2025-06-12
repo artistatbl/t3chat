@@ -27,8 +27,8 @@ export const getMessagesByChat = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("messages")
-      .withIndex("by_chat_created", (q) => q.eq("chatId", args.chatId))
-      .order("asc")
+      .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
+      .order("asc") // This orders by createdAt ascending
       .collect();
   },
 });
@@ -48,8 +48,10 @@ export const updateMessage = mutation({
       throw new Error("Message not found");
     }
 
+    // Only update content, keep the original createdAt for ordering
     await ctx.db.patch(message._id, {
       content: args.content,
+      // Don't update createdAt to preserve chronological order
     });
 
     return message;

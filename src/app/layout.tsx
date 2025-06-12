@@ -9,12 +9,10 @@ import { Providers } from "@/components/providers/providers";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -27,15 +25,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
+      >
+        <ClerkProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -43,15 +42,13 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Providers>
-              <ConvexClientProvider>
-                {children}
-              </ConvexClientProvider>
+              <ConvexClientProvider>{children}</ConvexClientProvider>
             </Providers>
-            <Toaster />
+            <Toaster richColors position="top-right" theme="system" />
             <Analytics />
           </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

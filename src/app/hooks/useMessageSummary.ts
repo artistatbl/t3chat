@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
-import { useModelStore } from '@/app/frontend/stores/ModelStore';
+import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
+import { useModelStore } from '@/app/stores/ModelStore';
 import { client } from '@/lib/client';
 import { toast } from 'sonner';
 

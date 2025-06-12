@@ -19,7 +19,7 @@ export function useConvexChat(threadId: string) {
   
   const getMessages = useQuery(
     api.messages.getMessagesByChat, 
-    getChat ? { chatId: getChat.uuid } : "skip"
+    threadId ? { chatId: threadId } : "skip"
   );
 
   const saveUserMessage = async (message: UIMessage) => {

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Key } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
+import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
 import { Badge } from '../ui/badge';
 
 const formSchema = z.object({

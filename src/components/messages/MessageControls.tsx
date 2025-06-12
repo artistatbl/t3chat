@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import { Check, Copy, RefreshCcw, SquarePen } from 'lucide-react';
 import { UIMessage } from 'ai';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
 
 interface MessageControlsProps {
   threadId: string;
@@ -26,7 +25,6 @@ export default function MessageControls({
   stop,
 }: MessageControlsProps) {
   const [copied, setCopied] = useState(false);
-  const hasRequiredKeys = useAPIKeyStore((state) => state.hasRequiredKeys());
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -41,8 +39,6 @@ export default function MessageControls({
     stop();
 
     if (message.role === 'user') {
-      // await deleteTrailingMessages(threadId, message.createdAt as Date, false);
-
       setMessages((messages) => {
         const index = messages.findIndex((m) => m.id === message.id);
 
@@ -53,8 +49,6 @@ export default function MessageControls({
         return messages;
       });
     } else {
-      // await deleteTrailingMessages(threadId, message.createdAt as Date);
-
       setMessages((messages) => {
         const index = messages.findIndex((m) => m.id === message.id);
 
@@ -83,16 +77,14 @@ export default function MessageControls({
       <Button variant="ghost" size="icon" onClick={handleCopy}>
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
       </Button>
-      {setMode && hasRequiredKeys && (
+      {setMode && (
         <Button variant="ghost" size="icon" onClick={() => setMode('edit')}>
           <SquarePen className="w-4 h-4" />
         </Button>
       )}
-      {hasRequiredKeys && (
-        <Button variant="ghost" size="icon" onClick={handleRegenerate}>
-          <RefreshCcw className="w-4 h-4" />
-        </Button>
-      )}
+      <Button variant="ghost" size="icon" onClick={handleRegenerate}>
+        <RefreshCcw className="w-4 h-4" />
+      </Button>
     </div>
   );
 }

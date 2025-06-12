@@ -89,6 +89,7 @@ function PureMessage({
                   threadId={threadId}
                   content={part.text}
                   message={message}
+                  setMode={setMode}
                   setMessages={setMessages}
                   reload={reload}
                   stop={stop}

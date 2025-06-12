@@ -1,29 +1,30 @@
 import { useState, useCallback, useEffect } from 'react';
-import Messages from './Messages';
+import Messages from '../messages/Messages';
 import ChatInput from './ChatInput';
+import ChatSidebar from './ChatSidebar';
 import ChatNavigator from './ChatNavigator';
 import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
-import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
-import { useModelStore } from '@/app/frontend/stores/ModelStore';
-import { useThreadStore } from '@/app/frontend/stores/ThreadStore';
+import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
+import { useModelStore } from '@/app/stores/ModelStore';
+import { useThreadStore } from '@/app/stores/ThreadStore';
 import { useConvexChat } from '@/app/hooks/useConvexChat';
 import { client } from '@/lib/client';
 import ThemeToggler from '../ui/ThemeToggler';
-import { SidebarTrigger, useSidebar } from '../ui/sidebar';
 import { Button } from '../ui/button';
 import { MessageSquareMore } from 'lucide-react';
-import { useChatNavigator } from '@/app/frontend/hooks/useChatNavigator';
+import { useChatNavigator } from '@/app/hooks/useChatNavigator';
 import { toast } from 'sonner';
 
 interface ChatProps {
   threadId: string;
   initialMessages: UIMessage[];
+  onMessageSubmit?: () => void; // Add this optional prop
 }
 
 type ChatStatus = 'ready' | 'streaming' | 'submitted' | 'error';
 
-export default function Chat({ threadId, initialMessages }: ChatProps) {
+export default function Chat({ threadId, initialMessages, onMessageSubmit }: ChatProps) {
   const { getKey } = useAPIKeyStore();
   const selectedModel = useModelStore((state) => state.selectedModel);
   const modelConfig = useModelStore((state) => state.getModelConfig());
@@ -37,6 +38,7 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false); // Add this flag
 
   const {
     isNavigatorVisible,
@@ -46,24 +48,29 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     scrollToMessage,
   } = useChatNavigator();
 
-  // Simplified initialization logic - load messages from Convex when available
+  // Fixed initialization logic - only load once and prevent duplicates
+  // In the useEffect where messages are loaded from Convex
   useEffect(() => {
     console.log('🔄 Chat initialization effect:', {
       threadId,
       convexMessages: convexMessages?.length || 0,
-      initialMessages: initialMessages.length
+      initialMessages: initialMessages.length,
+      isInitialized
     });
-
-    if (convexMessages !== undefined) {
+  
+    // Only initialize once when convex messages are loaded
+    if (convexMessages !== undefined && !isInitialized) {
       if (convexMessages.length > 0) {
-        // Convert Convex messages to UI messages
-        const uiMessages: UIMessage[] = convexMessages.map(msg => ({
-          parts: [{ type: 'text', text: msg.content }],
-          id: msg.uuid,
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-          createdAt: new Date(msg._creationTime),
-        }));
+        // Convert Convex messages to UI messages and sort by createdAt
+        const uiMessages: UIMessage[] = convexMessages
+          .sort((a, b) => a.createdAt - b.createdAt) // Sort by createdAt field
+          .map(msg => ({
+            parts: [{ type: 'text', text: msg.content }],
+            id: msg.uuid,
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            createdAt: new Date(msg.createdAt), // Use the createdAt from database
+          }));
         console.log('✅ Loading messages from Convex:', uiMessages.length);
         setMessages(uiMessages);
       } else {
@@ -71,8 +78,9 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
         console.log('📝 No messages in DB, using initial messages:', initialMessages.length);
         setMessages(initialMessages);
       }
+      setIsInitialized(true);
     }
-  }, [convexMessages, threadId, initialMessages]);
+  }, [convexMessages, threadId, initialMessages, isInitialized]);
 
   const append = useCallback(async (message: UIMessage) => {
     if (status === 'streaming' || status === 'submitted') return;
@@ -90,6 +98,11 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
       addThread(threadId, threadName);
       // Save chat title to database
       await saveChatTitle(threadName);
+      
+      // Call onMessageSubmit if provided - this will redirect to the thread page
+      if (onMessageSubmit) {
+        onMessageSubmit();
+      }
     }
 
     // Create abort controller for this request
@@ -272,7 +285,7 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     } finally {
       setAbortController(null);
     }
-  }, [messages, status, selectedModel, modelConfig, getKey, threadId, addThread, saveUserMessage, saveAssistantMessage, saveChatTitle]);
+  }, [messages, status, selectedModel, modelConfig, getKey, threadId, addThread, saveUserMessage, saveAssistantMessage, saveChatTitle, onMessageSubmit]);
 
   const stop = useCallback(() => {
     if (abortController) {
@@ -283,15 +296,34 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
   }, [abortController]);
 
   const reload = useCallback(() => {
+    console.log('🔄 Chat: Reload function called');
+    console.log('📊 Chat: Current messages state:', {
+      totalMessages: messages.length,
+      messageIds: messages.map(m => ({ id: m.id, role: m.role })),
+    });
+    
     if (messages.length > 0) {
       const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+      console.log('👤 Chat: Found last user message:', {
+        messageId: lastUserMessage?.id,
+        content: lastUserMessage?.content?.substring(0, 50) + '...'
+      });
+      
       if (lastUserMessage) {
         // Remove the last assistant message if it exists
         const newMessages = messages.filter((_, index) => {
           const isLastAssistant = index === messages.length - 1 && messages[index]?.role === 'assistant';
           return !isLastAssistant;
         });
+        
+        console.log('🗑️ Chat: Filtered messages for reload:', {
+          originalCount: messages.length,
+          filteredCount: newMessages.length,
+          removedLastAssistant: messages.length !== newMessages.length
+        });
+        
         setMessages(newMessages);
+        console.log('📤 Chat: Calling append with last user message');
         append(lastUserMessage);
       }
     }
@@ -299,29 +331,31 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
 
   return (
     <div className="relative w-full">
-      <ChatSidebarTrigger /> 
-      <main
-        className={`flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out`}
-      >
-        <Messages
-          threadId={threadId}
-          messages={messages}
-          status={status}
-          setMessages={setMessages}
-          reload={reload}
-          error={error}
-          registerRef={registerRef}
-          stop={stop}
-        />
-        <ChatInput
-          threadId={threadId}
-          input={input}
-          status={status}
-          append={append}
-          setInput={setInput}
-          stop={stop}
-        />
-      </main>
+      <div className="flex h-screen">
+        <ChatSidebar />
+        <main
+          className={`flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out`}
+        >
+          <Messages
+            threadId={threadId}
+            messages={messages}
+            status={status}
+            setMessages={setMessages}
+            reload={reload}
+            error={error}
+            registerRef={registerRef}
+            stop={stop}
+          />
+          <ChatInput
+            threadId={threadId}
+            input={input}
+            status={status}
+            append={append}
+            setInput={setInput}
+            stop={stop}
+          />
+        </main>
+      </div>
       <ThemeToggler /> 
       <Button
         onClick={handleToggleNavigator}
@@ -346,11 +380,3 @@ export default function Chat({ threadId, initialMessages }: ChatProps) {
     </div>
   );
 }
-
-const ChatSidebarTrigger = () => {
-  const { state } = useSidebar();
-  if (state === 'collapsed') {
-    return <SidebarTrigger className="fixed left-4 top-4 z-100" />;
-  }
-  return null;
-};

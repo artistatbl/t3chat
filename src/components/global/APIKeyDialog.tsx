@@ -15,8 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Key } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAPIKeyStore } from '@/app/frontend/stores/APIKeyStore';
-import { useModelStore } from '@/app/frontend/stores/ModelStore';
+import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
+import { useModelStore } from '@/app/stores/ModelStore';
 import { getModelConfig, getAvailableModels } from '@/lib/models';
 import { Badge } from '../ui/badge';
 

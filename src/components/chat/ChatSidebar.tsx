@@ -11,8 +11,10 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { buttonVariants } from '../ui/button';
-import UserProfile from './UserProfile';
-import { Link, useLocation } from 'react-router';
+import UserProfile from '../user/UserProfile';
+import Link from 'next/link';
+// import { Link } from 'react-router';
+import { usePathname } from 'next/navigation';
 import { memo } from 'react';
 import { MessageSquareMore } from 'lucide-react';
 import { useQuery } from 'convex/react';
@@ -27,8 +29,8 @@ export default function ChatSidebar() {
     api.chats.getChatsByUser,
     user ? { userId: user.id } : "skip"
   );
-  const location = useLocation();
-  const isThreadRoute = location.pathname.startsWith('/chat/');
+  const pathname = usePathname();
+  const isThreadRoute = pathname?.startsWith('/chat/');
 
   return (
     <Sidebar>
@@ -39,24 +41,26 @@ export default function ChatSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {chats?.map((chat) => (
-                  <SidebarMenuItem key={chat.uuid}>
-                    <Link
-                      to={`/chat/${chat.uuid}`}
-                      className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted w-full"
-                    >
-                      <MessageSquareMore className="w-4 h-4" />
-                      <span className="truncate">{chat.title || 'New Chat'}</span>
-                    </Link>
-                    {user && (
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                        <ChatDelete
-                          chatUuid={chat.uuid}
-                          chatTitle={chat.title || 'New Chat'}
-                          userId={user.id}
-                          redirectToHome={isThreadRoute}
-                        />
-                      </div>
-                    )}
+                  <SidebarMenuItem key={chat.uuid} className="group">
+                    <div className="flex items-center w-full">
+                      <Link
+                        href={`/chat/${chat.uuid}`}
+                        className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted flex-1 min-w-0"
+                      >
+                        <MessageSquareMore className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{chat.title || 'New Chat'}</span>
+                      </Link>
+                      {user && (
+                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ChatDelete
+                            chatUuid={chat.uuid}
+                            chatTitle={chat.title || 'New Chat'}
+                            userId={user.id}
+                            redirectToHome={isThreadRoute}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -77,7 +81,7 @@ function PureHeader() {
         Chat<span className="">0</span>
       </h1>
       <Link
-        to="/"
+        href="/"
         className={buttonVariants({
           variant: 'default',
           className: 'w-full',

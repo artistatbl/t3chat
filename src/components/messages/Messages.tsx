@@ -4,7 +4,7 @@ import { UIMessage } from 'ai';
 import { UseChatHelpers } from '@ai-sdk/react';
 import equal from 'fast-deep-equal';
 import MessageLoading from '../ui/MessageLoading';
-import Error from './Error';
+import Error from '../global/Error';
 
 function PureMessages({
   threadId,
@@ -25,10 +25,32 @@ function PureMessages({
   stop: UseChatHelpers['stop'];
   registerRef: (id: string, ref: HTMLDivElement | null) => void;
 }) {
+  // Check for duplicate IDs
+  const messageIds = messages.map(m => m.id);
+  const uniqueIds = new Set(messageIds);
+  const hasDuplicates = messageIds.length !== uniqueIds.size;
+  
+  if (hasDuplicates) {
+    const duplicates = messageIds.filter((id, index) => messageIds.indexOf(id) !== index);
+    console.error('🚨 Messages: DUPLICATE KEYS DETECTED!', {
+      totalMessages: messages.length,
+      uniqueMessages: uniqueIds.size,
+      duplicateIds: duplicates,
+      allMessageIds: messageIds,
+      messagesWithDetails: messages.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content?.substring(0, 30) + '...',
+        createdAt: m.createdAt
+      }))
+    });
+  }
+
   console.log('🖼️ Messages component rendering:', {
     messageCount: messages.length,
     status,
-    messages: messages.map(m => ({ id: m.id, role: m.role, contentLength: m.content?.length || 0 }))
+    hasDuplicates,
+    messageIds: messageIds
   });
 
   return (

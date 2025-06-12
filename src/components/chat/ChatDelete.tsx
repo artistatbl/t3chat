@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../ui/dialog";
-import { useNavigate } from "react-router";
+import { useRouter } from "next/navigation";
 
 interface ChatDeleteProps {
   chatUuid: string;
@@ -31,9 +31,8 @@ export default function ChatDelete({
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
   const deleteChat = useMutation(api.chats.deleteChat);
-  // Remove router initialization
 
   const handleOpenDialog = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -52,7 +51,7 @@ export default function ChatDelete({
       await deleteChat({ uuid: chatUuid, userId });
       setIsOpen(false);
       if (redirectToHome) {
-        navigate("/"); // Client-side navigation, no hard refresh
+        router.push("/"); // Client-side navigation, no hard refresh
         return;
       } else if (onDeleteSuccess) {
         onDeleteSuccess();
@@ -74,7 +73,6 @@ export default function ChatDelete({
         onClick={handleOpenDialog}
         title="Delete chat"
       >
-
         <XIcon className="w-3 h-3" />
       </Button>
 
@@ -86,7 +84,7 @@ export default function ChatDelete({
               Delete Chat
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete “{chatTitle || "this chat"}”? This
+              Are you sure you want to delete "{chatTitle || "this chat"}"? This
               action cannot be undone and all messages will be permanently lost.
             </DialogDescription>
           </DialogHeader>
