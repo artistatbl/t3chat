@@ -1,7 +1,7 @@
 'use client';
 
 import { buttonVariants } from '@/components/ui/button';
-import { ArrowLeftIcon, LogOut } from 'lucide-react';
+import { ArrowLeftIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSection } from '@/components/settings/profile-section';
 import { PlanBenefits } from '@/components/settings/plan-benefits';
@@ -11,6 +11,7 @@ import { KeyboardShortcuts } from '@/components/settings/keyboard-shortcuts';
 import ThemeToggler from '@/components/ui/ThemeToggler';
 import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { ModelSettings } from '@/components/settings/model-settings';
 
 export default function SettingsPage() {
   const { signOut } = useClerk();
@@ -20,7 +21,7 @@ export default function SettingsPage() {
   const handleSignOut = () => signOut(() => router.push('/'));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 py-8 px-4">
+    <div className="min-h-screen  py-8 px-4">
       <div className="max-w-5xl mx-auto relative">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -28,7 +29,7 @@ export default function SettingsPage() {
             onClick={handleBackToChat}
             className={buttonVariants({
               variant: 'ghost',
-              className: 'text-gray-300 hover:text-white hover:bg-gray-800/50',
+              className: 'text-gray-300 hover:text-white hover:bg-zinc-800/50',
             })}
           >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
@@ -39,25 +40,25 @@ export default function SettingsPage() {
             <ThemeToggler />
             <button 
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 transition-all"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-zinc-800/50 transition-all"
             >
-              <LogOut size={16} />
+
               Sign out
             </button>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
           {/* Left Sidebar */}
-          <div className="md:col-span-4 space-y-6">
-            <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
+          <div className="md:col-span-4 space-y-2">
+            <div className=" rounded-xl p-4 backdrop-blur-sm">
               <ProfileSection />
             </div>
-            <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
+            <div className=" rounded-xl p-4 backdrop-blur-sm">
               <UsageStats />
             </div>
-            <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
+            <div className=" rounded-xl p-4 backdrop-blur-sm">
               <KeyboardShortcuts />
             </div>
           </div>
@@ -65,14 +66,14 @@ export default function SettingsPage() {
           {/* Right Content */}
           <div className="md:col-span-8">
             <Tabs defaultValue="account" className="w-full">
-              <TabsList className="flex bg-gray-800/50 backdrop-blur-sm rounded-xl p-1 mb-6">
+              <TabsList className="flex  backdrop-blur-sm rounded-lg p-1 mb-6">
                 <TabsTrigger value="account" className="flex-1 rounded-lg">Account</TabsTrigger>
                 <TabsTrigger value="customization" className="flex-1 rounded-lg">Appearance</TabsTrigger>
                 <TabsTrigger value="models" className="flex-1 rounded-lg">Models</TabsTrigger>
                 <TabsTrigger value="api-keys" className="flex-1 rounded-lg">API</TabsTrigger>
               </TabsList>
               
-              <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm">
+              <div className=" rounded-xl p-6 backdrop-blur-sm">
                 <TabsContent value="account">
                   <PlanBenefits />
                   <DangerZone />
@@ -84,8 +85,8 @@ export default function SettingsPage() {
                 </TabsContent>
                 
                 <TabsContent value="models">
-                  <h2 className="text-xl font-semibold mb-4">AI Model Settings</h2>
-                  <p className="text-gray-400">Configure and manage AI models for your chat experience.</p>
+                  <ModelSettings/>
+
                 </TabsContent>
                 
                 <TabsContent value="api-keys">

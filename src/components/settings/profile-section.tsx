@@ -9,10 +9,10 @@ export function ProfileSection() {
   if (!isLoaded) {
     return (
       <div className="flex flex-col items-center mb-8">
-        <div className="w-24 h-24 rounded-full overflow-hidden mb-4 bg-gray-800 animate-pulse" />
-        <div className="h-6 w-32 bg-gray-800 rounded animate-pulse mb-1" />
-        <div className="h-4 w-48 bg-gray-800 rounded animate-pulse mb-4" />
-        <div className="h-8 w-24 bg-gray-800 rounded animate-pulse" />
+        <div className="w-24 h-24 rounded-full overflow-hidden mb-4 bg-zinc-800 animate-pulse" />
+        <div className="h-6 w-32 bg-zinc-800 rounded animate-pulse mb-1" />
+        <div className="h-4 w-48 bg-zinc-800 rounded animate-pulse mb-4" />
+        <div className="h-8 w-24 bg-zinc-800 rounded animate-pulse" />
       </div>
     );
   }
@@ -27,7 +27,7 @@ export function ProfileSection() {
         {avatarUrl ? (
           <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gray-700 flex items-center justify-center text-2xl text-white">
+          <div className="w-full h-full bg-zinc-700 flex items-center justify-center text-2xl text-white">
             {name.charAt(0)}
           </div>
         )}
