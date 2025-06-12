@@ -10,7 +10,9 @@ export type AIModel =
   | 'mistral-large'
   | 'gpt-4-turbo'
   | 'llama-3-8b'
-  | 'command-r-plus';
+  | 'command-r-plus'
+  | 'Deepseek R1 0528'
+  | 'Deepseek V3';
 
 export type ModelConfig = {
   provider: 'openai' | 'google' | 'openrouter';
@@ -24,7 +26,7 @@ type ModelsConfig = {
   [key in AIModel]: ModelConfig;
 };
 
-// Configuration for the top 10 AI models
+// Configuration for the top AI models
 export const MODELS_CONFIG: ModelsConfig = {
   'Gemini 2.5 Flash': {
     provider: 'google',
@@ -37,14 +39,14 @@ export const MODELS_CONFIG: ModelsConfig = {
     provider: 'openai',
     modelId: 'gpt-4o',
     name: 'GPT-4o',
-    description: 'OpenAI\'s most advanced multimodal model',
+    description: "OpenAI's most advanced multimodal model",
     headerKey: 'x-openai-api-key',
   },
   'claude-3-opus': {
     provider: 'openrouter',
     modelId: 'anthropic/claude-3-opus',
     name: 'Claude 3 Opus',
-    description: 'Anthropic\'s most powerful model',
+    description: "Anthropic's most powerful model",
     headerKey: 'x-openrouter-api-key',
   },
   'claude-3-sonnet': {
@@ -58,14 +60,14 @@ export const MODELS_CONFIG: ModelsConfig = {
     provider: 'google',
     modelId: 'gemini-1.5-pro',
     name: 'Gemini 1.5 Pro',
-    description: 'Google\'s advanced multimodal model',
+    description: "Google's advanced multimodal model",
     headerKey: 'x-google-api-key',
   },
   'llama-3-70b': {
     provider: 'openrouter',
     modelId: 'meta-llama/llama-3-70b-instruct',
     name: 'Llama 3 70B',
-    description: 'Meta\'s largest open model',
+    description: "Meta's largest open model",
     headerKey: 'x-openrouter-api-key',
   },
   'claude-3-haiku': {
@@ -101,6 +103,20 @@ export const MODELS_CONFIG: ModelsConfig = {
     modelId: 'cohere/command-r-plus',
     name: 'Command R+',
     description: 'Specialized for reasoning tasks',
+    headerKey: 'x-openrouter-api-key',
+  },
+  'Deepseek R1 0528': {
+    provider: 'openrouter',
+    modelId: 'deepseek/deepseek-r1-0528:free',
+    name: 'Deepseek R1 0528',
+    description: 'Specialized coding model from Deepseek',
+    headerKey: 'x-openrouter-api-key',
+  },
+  'Deepseek V3': {
+    provider: 'openrouter',
+    modelId: 'deepseek/deepseek-chat-v3-0324:free',
+    name: 'Deepseek V3',
+    description: 'Advanced general-purpose model from Deepseek',
     headerKey: 'x-openrouter-api-key',
   },
 };

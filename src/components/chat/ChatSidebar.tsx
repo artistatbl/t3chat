@@ -9,12 +9,10 @@ import {
   SidebarMenu,
   SidebarFooter,
   SidebarTrigger,
-
 } from '@/components/ui/sidebar';
 import { buttonVariants } from '../ui/button';
 import UserProfile from '../user/UserProfile';
 import Link from 'next/link';
-// import { Link } from 'react-router';
 import { usePathname } from 'next/navigation';
 import { memo } from 'react';
 import { MessageSquareMore } from 'lucide-react';
@@ -23,7 +21,7 @@ import { api } from '../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import ChatDelete from './ChatDelete';
 import { SidebarMenuItem } from '@/components/ui/sidebar';
-
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function ChatSidebar() {
   const { user } = useUser();
@@ -33,14 +31,16 @@ export default function ChatSidebar() {
   );
   const pathname = usePathname();
   const isThreadRoute = pathname?.startsWith('/chat/');
-  // Removed the state variable since it's not being used
+  const { state } = useSidebar();
 
   return (
     <>
-      {/* Always visible trigger button on the left side */}
-      <div className="fixed left-4 top-4 z-20 md:block hidden">
-        <SidebarTrigger />
-      </div>
+      {/* Floating trigger button that's visible when sidebar is collapsed */}
+      {state === 'collapsed' && (
+        <div className="fixed left-4 top-4 z-20 md:block hidden">
+          <SidebarTrigger />
+        </div>
+      )}
       <Sidebar>
         <div className="flex flex-col h-full p-2">
           <Header />
@@ -85,9 +85,9 @@ export default function ChatSidebar() {
 function PureHeader() {
   return (
     <SidebarHeader className="flex justify-between items-center gap-4 relative">
-      {/* Removed the SidebarTrigger from here since we now have it always visible on the left */}
-      <h1 className="text-2xl font-light">
-        T3.<span className="text-fuchsia-700 font-bold">0</span>
+      <SidebarTrigger className="absolute right-1 top-2.5" />
+      <h1 className="text-2xl font-bold">
+        Chat<span className="">0</span>
       </h1>
       <Link
         href="/"
