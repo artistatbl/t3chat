@@ -1,26 +1,21 @@
 'use client';
-import { ChevronDown, Check, ArrowUpIcon } from 'lucide-react';
+import { ArrowUpIcon } from 'lucide-react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import useAutoResizeTextarea from '@/app/hooks/useAutoResizeTextArea';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { useRouter } from 'next/navigation';
 import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
 import { useModelStore } from '@/app/stores/ModelStore';
-import { AIModel, getModelConfig, getAvailableModels } from '@/lib/models';
+import { getModelConfig } from '@/lib/models';
 import APIKeyDialog from '@/components/global/APIKeyDialog';
 import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { StopIcon } from '../ui/icons';
 import { useMessageSummary } from '@/app/hooks/useMessageSummary';
+import { ChatModelDropdown } from './ModelSelector'; // Added import
 
 interface ChatInputProps {
   threadId: string;
@@ -232,72 +227,7 @@ const ChatInput = memo(PureChatInput, (prevProps, nextProps) => {
   return true;
 });
 
-const PureChatModelDropdown = () => {
-  const getKey = useAPIKeyStore((state) => state.getKey);
-  const { selectedModel, setModel } = useModelStore();
-  
-  const availableModels = useMemo(() => getAvailableModels(), []);
-
-  const hasApiKeyForModel = useCallback(
-    (model: AIModel) => {
-      const modelConfig = getModelConfig(model);
-      const apiKey = getKey(modelConfig.provider);
-      return !!apiKey;
-    },
-    [getKey]
-  );
-
-  return (
-    <div className="flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex items-center gap-1 h-8 pl-2 pr-2 text-xs rounded-md text-foreground hover:bg-primary/10 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-blue-500"
-            aria-label={`Selected model: ${selectedModel}`}
-          >
-            <div className="flex items-center gap-1">
-              {selectedModel}
-              <ChevronDown className="w-3 h-3 opacity-50" />
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className={cn('min-w-[10rem]', 'border-border', 'bg-popover')}
-        >
-          {availableModels.map((modelInfo) => {
-            const hasApiKey = hasApiKeyForModel(modelInfo.id);
-            return (
-              <DropdownMenuItem
-                key={modelInfo.id}
-                onSelect={() => setModel(modelInfo.id)}
-                className={cn(
-                  'flex items-center justify-between gap-2',
-                  'cursor-pointer'
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{modelInfo.id}</span>
-                  {!hasApiKey && (
-                    <span className="text-xs text-muted-foreground">(No API key)</span>
-                  )}
-                </div>
-                {selectedModel === modelInfo.id && (
-                  <Check
-                    className="w-4 h-4 text-blue-500"
-                    aria-label="Selected"
-                  />
-                )}
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
-  );
-};
-
-const ChatModelDropdown = memo(PureChatModelDropdown);
+// Removed PureChatModelDropdown and ChatModelDropdown components from here
 
 function PureStopButton({ stop }: StopButtonProps) {
   return (
