@@ -5,6 +5,7 @@ import Chat from '@/components/chat/Chat';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import ChatSidebar from '@/components/chat/ChatSidebar';
 
 export default function Page() {
   const router = useRouter();
@@ -17,11 +18,15 @@ export default function Page() {
   
   return (
     <SidebarProvider>
-      <Chat 
-        threadId={threadId} 
-        initialMessages={[]} 
-        onMessageSubmit={handleStartChat} 
-      />
+
+        <ChatSidebar />
+
+          <Chat 
+            threadId={threadId} 
+            initialMessages={[]} 
+            onMessageSubmit={handleStartChat} 
+          />
+
     </SidebarProvider>
   );
 }

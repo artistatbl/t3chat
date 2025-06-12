@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import Messages from '../messages/Messages';
 import ChatInput from './ChatInput';
-import ChatSidebar from './ChatSidebar';
 import ChatNavigator from './ChatNavigator';
 import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
@@ -332,7 +331,7 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
   return (
     <div className="relative w-full">
       <div className="flex h-screen">
-        <ChatSidebar />
+        {/* Remove the ChatSidebar from here as it's already in the layout */}
         <main
           className={`flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out`}
         >
