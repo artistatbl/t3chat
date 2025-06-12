@@ -29,18 +29,22 @@ export default function SettingsPage() {
             onClick={handleBackToChat}
             className={buttonVariants({
               variant: 'ghost',
-              className: 'text-gray-300 hover:text-white hover:bg-zinc-800/50',
+              className: 'text-sm  cursor-pointer transition-all',
             })}
           >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back
+            Back to chat
           </button>
           
           <div className="flex items-center space-x-4">
             <ThemeToggler />
             <button 
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-zinc-800/50 transition-all"
+              className={buttonVariants({
+                variant: 'ghost',
+                className: 'text-sm  cursor-pointer transition-all',
+              })}
+
             >
 
               Sign out

@@ -3,7 +3,7 @@
 
 export function UsageStats() {
   return (
-    <div className="bg-zinc-900 rounded-lg p-4 mb-6">
+    <div className="bg-zinc-900 text-white rounded-lg p-4 mb-6">
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-sm font-medium">Message Usage</h3>
         <span className="text-xs text-gray-400">Resets 06/20/2023</span>

@@ -10,7 +10,7 @@ export function KeyboardShortcuts() {
   ];
 
   return (
-    <div className="bg-zinc-900 rounded-lg p-4 mb-8">
+    <div className="bg-zinc-900 text-white rounded-lg p-4 mb-8">
       <h3 className="text-sm font-medium mb-3">Keyboard Shortcuts</h3>
       
       {shortcuts.map((shortcut, index) => (
