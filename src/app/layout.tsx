@@ -34,6 +34,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+          <main className="">
         <ClerkProvider>
           <ThemeProvider
             attribute="class"
@@ -41,6 +42,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+
             <Providers>
               <ConvexClientProvider>{children}</ConvexClientProvider>
             </Providers>
@@ -48,6 +50,7 @@ export default function RootLayout({
             <Analytics />
           </ThemeProvider>
         </ClerkProvider>
+            </main>
       </body>
     </html>
   );

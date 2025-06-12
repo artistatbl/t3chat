@@ -331,7 +331,6 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
   return (
     <div className="relative w-full">
       <div className="flex h-screen">
-        {/* Remove the ChatSidebar from here as it's already in the layout */}
         <main
           className={`flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out`}
         >
@@ -355,20 +354,21 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
           />
         </main>
       </div>
-      <ThemeToggler /> 
-      <Button
-        onClick={handleToggleNavigator}
-        variant="outline"
-        size="icon"
-        className="fixed right-16 top-4 z-20"
-        aria-label={
-          isNavigatorVisible
-            ? 'Hide message navigator'
-            : 'Show message navigator'
-        }
-      >
-        <MessageSquareMore className="h-5 w-5" />
-      </Button>
+      <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
+        <Button
+          onClick={handleToggleNavigator}
+          variant="outline"
+          size="icon"
+          aria-label={
+            isNavigatorVisible
+              ? 'Hide message navigator'
+              : 'Show message navigator'
+          }
+        >
+          <MessageSquareMore className="h-5 w-5" />
+        </Button>
+        <ThemeToggler />
+      </div>
 
       <ChatNavigator
         threadId={threadId}
