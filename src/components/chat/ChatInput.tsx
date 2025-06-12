@@ -162,8 +162,8 @@ function PureChatInput({
 
   return (
     <>
-      <div className="fixed bottom-0 w-full ring-1 ring-transparent rounded-xl max-w-3xl">
-        <div className="bg-secondary rounded-t-[20px]  p-2 pb-0 w-full">
+      <div className="fixed bottom-0 w-full  max-w-3xl rounded-lg bg-zinc-900/5 dark:bg-white/5 p-2 ring-4 ring-zinc-900/10 dark:ring-white/10 lg">
+        <div className="bg-secondary rounded-xl p-2 pb-0 w-full">
           <div className="relative">
             <div className="flex flex-col">
               <div className="bg-secondary overflow-y-auto max-h-[300px]">
@@ -173,7 +173,7 @@ function PureChatInput({
                   placeholder="What can I do for you?"
                   className={cn(
                     'w-full px-4 py-3 border-none shadow-none dark:bg-transparent',
-                    'placeholder:text-muted-foreground resize-none',
+                    'placeholder:text-zinc-950 dark:placeholder:text-zinc-100 resize-none',
                     'focus-visible:ring-0 focus-visible:ring-offset-0',
                     'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/30',
                     'scrollbar-thumb-rounded-full',
@@ -210,7 +210,6 @@ function PureChatInput({
         open={showAPIKeyDialog}
         onOpenChange={(open) => {
           setShowAPIKeyDialog(open);
-          // Clear pending input if dialog is closed without success
           if (!open) {
             setPendingInput('');
           }
@@ -227,7 +226,6 @@ const ChatInput = memo(PureChatInput, (prevProps, nextProps) => {
   return true;
 });
 
-// Removed PureChatModelDropdown and ChatModelDropdown components from here
 
 function PureStopButton({ stop }: StopButtonProps) {
   return (
