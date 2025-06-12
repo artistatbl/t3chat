@@ -77,7 +77,7 @@ export default function MessageControls({
       <Button variant="ghost" size="icon" onClick={handleCopy}>
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
       </Button>
-      {setMode && (
+      {message.role === 'user' && setMode && (
         <Button variant="ghost" size="icon" onClick={() => setMode('edit')}>
           <SquarePen className="w-4 h-4" />
         </Button>
