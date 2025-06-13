@@ -25,7 +25,7 @@ function CodeBlock({ children, className, ...props }: CodeComponentProps) {
   const match = /language-(\w+)/.exec(className || '');
 
   if (match) {
-    const lang = match[1];
+    const lang = match[1] || 'text'; // Provide a default value if match[1] is undefined
     return (
       <div className="rounded-none">
         <Codebar lang={lang} codeString={String(children)} />
