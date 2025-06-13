@@ -84,33 +84,35 @@ function PureChatInput({
 
   const handleSubmit = useCallback(async () => {
     const currentInput = textareaRef.current?.value || input;
-
+  
     if (
-      (!currentInput.trim() && attachments.length === 0) || // This condition is correct, keep it
+      (!currentInput.trim() && attachments.length === 0) ||
       status === 'streaming' ||
       status === 'submitted'
     )
       return;
-
+  
     // Check if user has API key for the selected model before proceeding
     if (!hasApiKeyForCurrentModel()) {
-      // Preserve the input before showing the dialog
       setPendingInput(currentInput.trim());
       setShowAPIKeyDialog(true);
       return;
     }
-
+  
     const messageId = uuidv4();
-
-    if (!id) {
-      router.push(`/chat/${threadId}`);
-      complete(currentInput.trim(), {
-        body: { threadId, messageId, isTitle: true },
-      });
-    } else {
-      complete(currentInput.trim(), { body: { messageId, threadId } });
+  
+    // Only call complete if there's actual text input
+    if (currentInput.trim()) {
+      if (!id) {
+        router.push(`/chat/${threadId}`);
+        complete(currentInput.trim(), {
+          body: { threadId, messageId, isTitle: true },
+        });
+      } else {
+        complete(currentInput.trim(), { body: { messageId, threadId } });
+      }
     }
-
+  
     const userMessage = createUserMessage(messageId, currentInput.trim());
     // Add attachments to the message
     if (attachments.length > 0) {
@@ -137,20 +139,22 @@ function PureChatInput({
   ]);
 
   const handleAPIKeySuccess = useCallback(() => {
-    // If there's no pending input but there are attachments, we should still proceed
     if (!pendingInput.trim() && attachments.length === 0) return;
-
+  
     const messageId = uuidv4();
-
-    if (!id) {
-      router.push(`/chat/${threadId}`);
-      complete(pendingInput, {
-        body: { threadId, messageId, isTitle: true },
-      });
-    } else {
-      complete(pendingInput, { body: { messageId, threadId } });
+  
+    // Only call complete if there's actual text input
+    if (pendingInput.trim()) {
+      if (!id) {
+        router.push(`/chat/${threadId}`);
+        complete(pendingInput, {
+          body: { threadId, messageId, isTitle: true },
+        });
+      } else {
+        complete(pendingInput, { body: { messageId, threadId } });
+      }
     }
-
+  
     const userMessage = createUserMessage(messageId, pendingInput);
     // Add attachments to the message if there are any
     if (attachments.length > 0) {
