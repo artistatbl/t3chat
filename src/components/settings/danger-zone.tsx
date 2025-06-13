@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export function DangerZone() {
   return (
-    <div className="mb-8">
+    <div className="mt-6">
       <h2 className="text-xl font-bold mb-4">Danger Zone</h2>
       <p className="text-sm text-gray-400 mb-4">
         Permanently delete your account and all associated data.

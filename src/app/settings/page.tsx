@@ -4,8 +4,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { ArrowLeftIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSection } from '@/components/settings/profile-section';
-import { PlanBenefits } from '@/components/settings/plan-benefits';
-import { UsageStats } from '@/components/settings/usage-stats';
+import { ProjectFeatures } from '@/components/settings/plan-benefits';
 import { DangerZone } from '@/components/settings/danger-zone';
 import { KeyboardShortcuts } from '@/components/settings/keyboard-shortcuts';
 import ThemeToggler from '@/components/ui/ThemeToggler';
@@ -60,9 +59,6 @@ export default function SettingsPage() {
               <ProfileSection />
             </div>
             <div className=" rounded-xl p-4 backdrop-blur-sm">
-              <UsageStats />
-            </div>
-            <div className=" rounded-xl p-4 backdrop-blur-sm">
               <KeyboardShortcuts />
             </div>
           </div>
@@ -79,7 +75,7 @@ export default function SettingsPage() {
               
               <div className=" rounded-xl p-6 backdrop-blur-sm">
                 <TabsContent value="account">
-                  <PlanBenefits />
+                  <ProjectFeatures />
                   <DangerZone />
                 </TabsContent>
                 
