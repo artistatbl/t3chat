@@ -77,7 +77,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
               {/* UI Tabs Component */}
               <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
                 <TabsList className="w-full bg-zinc-800/50">
-                  <TabsTrigger value="account" className="flex-1">
+                  <TabsTrigger value="account" className="flex-1 cursor-pointer">
                     Account
                   </TabsTrigger>
                   <TabsTrigger value="appearance" className="flex-1">
