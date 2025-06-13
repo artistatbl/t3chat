@@ -25,6 +25,24 @@ export const createMessage = mutation({
 export const getMessagesByChat = query({
   args: { chatId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return []; // User not authenticated
+    }
+    
+    const userId = identity.subject;
+    
+    // First, verify the chat belongs to the user
+    const chat = await ctx.db
+      .query("chats")
+      .withIndex("by_uuid", (q) => q.eq("uuid", args.chatId))
+      .first();
+    
+    if (!chat || chat.userId !== userId) {
+      return []; // Chat doesn't exist or doesn't belong to the user
+    }
+    
+    // If chat belongs to user, return messages
     return await ctx.db
       .query("messages")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))

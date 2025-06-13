@@ -55,10 +55,24 @@ export const updateChatTitle = mutation({
 export const getChatByUuid = query({
   args: { uuid: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null; // User not authenticated
+    }
+    
+    const userId = identity.subject;
+    
+    const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
       .first();
+    
+    // Return null if chat doesn't exist or doesn't belong to the user
+    if (!chat || chat.userId !== userId) {
+      return null;
+    }
+    
+    return chat;
   },
 });
 
