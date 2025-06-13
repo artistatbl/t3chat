@@ -2,7 +2,7 @@ import { j, publicProcedure } from "../jstack";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { generateText } from "ai";
+import { streamTextWithConversion } from "@/lib/ai-wrapper";
 import { getModelConfig, AIModel } from "@/lib/models";
 import { z } from "zod";
 
@@ -63,18 +63,37 @@ export const completionRouter = j.router({
           ? "Generate a concise, descriptive title (max 6 words) for this conversation based on the user's message. Return only the title, no quotes or extra text."
           : "You are a helpful AI assistant. Provide a clear, concise response to the user's message.";
 
-        const result = await generateText({
-          model: aiModel,
-          prompt,
-          system: systemPrompt,
-          maxTokens: isTitle ? 20 : 1000,
-          temperature: isTitle ? 0.3 : 0.7,
+        // Create a message object for the prompt with the correct type
+        const messages = [
+          {
+            role: "user" as const,
+            content: prompt
+          }
+        ];
+
+        // Use the streamTextWithConversion function to handle the conversion
+        const result = await new Promise<{ text: string }>((resolve, reject) => {
+          const stream = streamTextWithConversion({
+            model: aiModel,
+            messages,
+            system: systemPrompt,
+            maxTokens: isTitle ? 20 : 1000,
+            temperature: isTitle ? 0.3 : 0.7,
+            onFinish: (result) => {
+              resolve({ text: result.text });
+            },
+            onError: (error) => {
+              reject(error);
+            }
+          });
+          
+          // Return the stream to prevent it from being garbage collected
+          return stream;
         });
 
         return c.json({
           text: result.text,
-          usage: result.usage,
-          finishReason: result.finishReason,
+          // Note: usage and finishReason might not be available with this approach
         });
       } catch (error) {
         console.error("Completion failed:", error);

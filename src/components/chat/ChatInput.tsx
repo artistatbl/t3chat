@@ -68,9 +68,10 @@ function PureChatInput({
   // For dynamic routes, we check if we're on a specific thread by checking if threadId is not a new UUID
   const id = threadId && threadId.length > 0 ? threadId : null;
 
+  // Update the isDisabled check to enable the button when there are attachments
   const isDisabled = useMemo(
-    () => !input.trim() || status === 'streaming' || status === 'submitted',
-    [input, status]
+    () => ((!input.trim() && attachments.length === 0) || status === 'streaming' || status === 'submitted'),
+    [input, status, attachments.length] // Add attachments.length as a dependency
   );
 
   const { complete } = useMessageSummary();
@@ -85,7 +86,7 @@ function PureChatInput({
     const currentInput = textareaRef.current?.value || input;
 
     if (
-      (!currentInput.trim() && attachments.length === 0) ||
+      (!currentInput.trim() && attachments.length === 0) || // This condition is correct, keep it
       status === 'streaming' ||
       status === 'submitted'
     )
@@ -136,8 +137,8 @@ function PureChatInput({
   ]);
 
   const handleAPIKeySuccess = useCallback(() => {
-    // Use the preserved input instead of current input
-    if (!pendingInput.trim()) return;
+    // If there's no pending input but there are attachments, we should still proceed
+    if (!pendingInput.trim() && attachments.length === 0) return;
 
     const messageId = uuidv4();
 
@@ -151,12 +152,18 @@ function PureChatInput({
     }
 
     const userMessage = createUserMessage(messageId, pendingInput);
+    // Add attachments to the message if there are any
+    if (attachments.length > 0) {
+      (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
+    }
+    
     append(userMessage);
     setInput('');
     setPendingInput(''); // Clear the pending input
+    setAttachments([]);
     adjustHeight(true);
     setShowAPIKeyDialog(false);
-  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight]);
+  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight, attachments]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

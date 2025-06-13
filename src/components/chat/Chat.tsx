@@ -149,55 +149,99 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
       if (!apiKey) {
         throw new Error('API key not found');
       }      // Prepare messages for API - improved content extraction
+      // Prepare messages for API - improved content extraction with multimodal support
       const apiMessages = [...messages, message].map(msg => {
-        let content = '';
-        
-        // First try to get content from the content property
-        if (msg.content && msg.content.trim()) {
-          content = msg.content.trim();
-        }
-        // If content is empty, try to extract from parts
-        else if (msg.parts && msg.parts.length > 0) {
-          content = msg.parts
-            .filter(part => part.type === 'text')
-            .map(part => {
-              // Type guard to ensure we're working with TextUIPart
-              if (part.type === 'text' && 'text' in part) {
-                return part.text?.trim() || '';
-              }
-              return '';
-            })
-            .filter(text => text.length > 0)
-            .join('');
-        }
-        
-        // Check for attachments
         const attachments = (msg as { attachments?: Array<{ name: string; url: string; type: string }> }).attachments;
-        if (attachments && attachments.length > 0) {
-          // Add attachment information to the content
-          const attachmentText = attachments.map((att: { name: string; url: string; type: string }) => {
-            if (att.type.startsWith('image/')) {
-              // For images, include markdown image syntax
-              return `![${att.name}](${att.url})`;
-            } else {
-              // For other file types, use link syntax
-              return `[Attachment: ${att.name} (${att.type})](${att.url})`;
-            }
-          }).join('\n');
-          
-          // Append attachment information to the content
-          content = content + '\n\n' + attachmentText;
-        }
         
-        return {
-          role: msg.role,
-          content: content,
-        };
+        // Check if we need to use multimodal format
+        if (attachments && attachments.length > 0) {
+          // Create multimodal content array
+          const content = [];
+          
+          // Add text content if it exists
+          if (msg.content && msg.content.trim()) {
+            content.push({
+              type: 'text',
+              text: msg.content.trim()
+            });
+          } else if (msg.parts && msg.parts.length > 0) {
+            const textContent = msg.parts
+              .filter(part => part.type === 'text')
+              .map(part => {
+                if (part.type === 'text' && 'text' in part) {
+                  return part.text?.trim() || '';
+                }
+                return '';
+              })
+              .filter(text => text.length > 0)
+              .join('');
+            
+            if (textContent) {
+              content.push({
+                type: 'text',
+                text: textContent
+              });
+            }
+          }
+          
+          // Add image attachments
+          attachments.forEach(att => {
+            if (att.type.startsWith('image/')) {
+              content.push({
+                type: 'image_url',
+                image_url: {
+                  url: att.url
+                }
+              });
+            } else {
+              // For non-image files, add as text with link
+              content.push({
+                type: 'text',
+                text: `[Attachment: ${att.name} (${att.type})](${att.url})`
+              });
+            }
+          });
+          
+          return {
+            role: msg.role,
+            content: content,
+          };
+        } else {
+          // Use regular text format for messages without attachments
+          let textContent = '';
+          
+          // First try to get content from the content property
+          if (msg.content && msg.content.trim()) {
+            textContent = msg.content.trim();
+          }
+          // If content is empty, try to extract from parts
+          else if (msg.parts && msg.parts.length > 0) {
+            textContent = msg.parts
+              .filter(part => part.type === 'text')
+              .map(part => {
+                if (part.type === 'text' && 'text' in part) {
+                  return part.text?.trim() || '';
+                }
+                return '';
+              })
+              .filter(text => text.length > 0)
+              .join('');
+          }
+          
+          return {
+            role: msg.role,
+            content: textContent,
+          };
+        }
       });
 
       // Filter out messages with empty content and non-conversation roles
       const validMessages = apiMessages.filter(msg => 
-        msg.role !== 'data' && msg.content && msg.content.trim().length > 0
+        msg.role !== 'data' && msg.content && (
+          typeof msg.content === 'string' 
+            ? msg.content.trim().length > 0
+            : Array.isArray(msg.content) && msg.content.length > 0
+        )
       ) as { role: 'system' | 'user' | 'assistant'; content: string; }[];
   
       setStatus('streaming');

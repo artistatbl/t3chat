@@ -2,17 +2,35 @@ import { j, publicProcedure } from "../jstack";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { streamText, smoothStream } from "ai";
+// Replace the existing import
+// import { streamText, smoothStream, CoreMessage } from "ai";
+// With:
+import { smoothStream } from "ai";
+import { streamTextWithConversion } from "@/lib/ai-wrapper";
+
 import { getModelConfig, AIModel } from "@/lib/models";
 import { z } from "zod";
 
-// Enhanced schema with validation
+// Enhanced schema with validation for multimodal content
 const chatRequestSchema = z.object({
   messages: z
     .array(
       z.object({
         role: z.enum(["user", "assistant", "system"]),
-        content: z.string().min(1, "Message content cannot be empty"),
+        content: z.union([
+          z.string().min(1, "Message content cannot be empty"),
+          z.array(
+            z.object({
+              type: z.enum(["text", "image_url"]),
+              text: z.string().optional(),
+              image_url: z
+                .object({
+                  url: z.string().url(),
+                })
+                .optional(),
+            })
+          ).min(1, "Message content cannot be empty"),
+        ]),
       })
     )
     .min(1, "At least one message is required")
@@ -21,26 +39,19 @@ const chatRequestSchema = z.object({
 });
 
 // System prompt as a constant for better maintainability
-const SYSTEM_PROMPT = `You are Chat0, an AI assistant that can answer questions and help with tasks.
-
-Key guidelines:
-- Be helpful and provide relevant, accurate information
-- Be respectful and polite in all interactions
-- Be engaging and maintain a conversational tone
-- Keep responses concise but comprehensive
-
-Mathematical expressions:
-- Inline math: Use single dollar signs $content$
-- Display math: Use double dollar signs $$content$$
-- Display math should be on its own line
-- Do not nest math delimiters or mix styles
-
-Examples:
-- Inline: The equation $E = mc^2$ shows mass-energy equivalence
-- Display:
-$$\\frac{d}{dx}\\sin(x) = \\cos(x)$$`;
+const SYSTEM_PROMPT = `You are T3 Chat, an AI assistant powered by the Gemini 2.5 Pro model. Your role is to assist and engage in conversation while being helpful, respectful, and engaging.
+- If you are specifically asked about the model you are using, you may mention that you use the Gemini 2.5 Pro model. If you are not asked specifically about the model you are using, you do not need to mention it.
+- The current date and time including timezone is 6/13/2025, 7:51:20 PM GMT+1.
+- Always use LaTeX for mathematical expressions:
+    - Inline math must be wrapped in escaped parentheses: \\( content \\)
+    - Do not use single dollar signs for inline math
+    - Display math must be wrapped in double dollar signs: $$ content $$
+- Do not use the backslash character to escape parenthesis. Use the actual parentheses instead.
+- Ensure code is properly formatted using Prettier with a print width of 80 characters
+- Present code in Markdown code blocks with the correct language extension indicated`;
 
 // Provider factory for better organization
+// Provider factory with multimodal support
 const createAIProvider = (
   provider: string,
   apiKey: string,
@@ -50,6 +61,7 @@ const createAIProvider = (
     case "google":
       return createGoogleGenerativeAI({ apiKey })(modelId);
     case "openai":
+      // Use a model that supports multimodal inputs like gpt-4-vision-preview
       return createOpenAI({ apiKey })(modelId);
     case "openrouter":
       return createOpenRouter({ apiKey })(modelId);
@@ -84,7 +96,7 @@ export const chatRouter = j.router({
         let modelConfig;
         try {
           modelConfig = getModelConfig(model as AIModel);
-        } catch{
+        } catch {
           throw new ChatError(`Invalid model: ${model}`, 400, "INVALID_MODEL");
         }
 
@@ -106,7 +118,7 @@ export const chatRouter = j.router({
             apiKey,
             modelConfig.modelId
           );
-        } catch  {
+        } catch {
           throw new ChatError(
             `Failed to initialize ${modelConfig.provider} provider`,
             500,
@@ -114,23 +126,27 @@ export const chatRouter = j.router({
           );
         }
 
-        // Convert messages with validation
-        const coreMessages = messages.map((msg) => ({
-          role: msg.role,
-          content: msg.content.trim(),
-        }));
+        //
+        // START OF FIXED CODE
+        //
+        // Use a switch statement to properly narrow the types for CoreMessage.
+      
+        //
+        // END OF FIXED CODE
+        //
 
         // Stream configuration
-        const result = streamText({
+        // With:
+        const result = streamTextWithConversion({
           model: aiModel,
-          messages: coreMessages,
+          messages: messages,
           system: SYSTEM_PROMPT,
-          maxTokens: 4000, // Reasonable limit
-          temperature: 0.7, // Balanced creativity
+          maxTokens: 4000,
+          temperature: 0.7,
           experimental_transform: [
             smoothStream({
               chunking: /[.!?]\s+/,
-              delayInMs: 10, // Slight delay for smoother streaming
+              delayInMs: 10,
             }),
           ],
           abortSignal: c.req.raw.signal,
@@ -148,7 +164,8 @@ export const chatRouter = j.router({
               model: modelConfig.modelId,
               provider: modelConfig.provider,
               duration: `${duration}ms`,
-              usage: result.usage,
+              // Remove usage logging since it's not available in the result type
+              text: result.text,
               timestamp: new Date().toISOString(),
             });
           },
@@ -187,7 +204,7 @@ export const chatRouter = j.router({
               code: error.code,
               timestamp: new Date().toISOString(),
             },
-            //rror.statusCode
+//error.statusCode
           );
         }
 

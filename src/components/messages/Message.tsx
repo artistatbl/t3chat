@@ -8,6 +8,7 @@ import { UseChatHelpers } from '@ai-sdk/react';
 import MessageEditor from './MessageEditor';
 import MessageReasoning from './MessageReasoning';
 import Image from 'next/image';
+import ImageViewerDialog from './ImageViewerDialog';
 
 function PureMessage({
   threadId,
@@ -27,10 +28,19 @@ function PureMessage({
   stop: UseChatHelpers['stop'];
 }) {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [selectedImage, setSelectedImage] = useState<{url: string; name: string} | null>(null);
   
   // Extract attachments from the message if they exist
   const attachments = (message as UIMessage & { attachments?: Array<{ name: string; url: string; type: string }> }).attachments || [];
   const hasAttachments = attachments.length > 0;
+
+  const handleImageClick = (url: string, name: string) => {
+    setSelectedImage({ url, name });
+  };
+
+  const handleCloseImageViewer = () => {
+    setSelectedImage(null);
+  };
 
   return (
     <div
@@ -80,7 +90,10 @@ function PureMessage({
                   {attachments.map((attachment, i) => (
                     <div key={`${message.id}-attachment-${i}`} className="overflow-hidden rounded-lg">
                       {attachment.type.startsWith('image/') ? (
-                        <div className="relative w-[200px] h-[150px]">
+                        <div 
+                          className="relative w-[200px] h-[150px] cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-md"
+                          onClick={() => handleImageClick(attachment.url, attachment.name)}
+                        >
                           <Image 
                             src={attachment.url} 
                             alt={attachment.name}
@@ -116,8 +129,6 @@ function PureMessage({
             <div key={key} className="group flex flex-col gap-2 w-full">
               <MarkdownRenderer content={part.text} id={message.id} />
               
-              {/* Render image attachments for assistant messages if they're in markdown format */}
-              
               {!isStreaming && (
                 <MessageControls
                   threadId={threadId}
@@ -133,6 +144,16 @@ function PureMessage({
           );
         }
       })}
+
+      {/* Image Viewer Dialog */}
+      {selectedImage && (
+        <ImageViewerDialog
+          isOpen={!!selectedImage}
+          onClose={handleCloseImageViewer}
+          imageUrl={selectedImage.url}
+          imageName={selectedImage.name}
+        />
+      )}
     </div>
   );
 }
