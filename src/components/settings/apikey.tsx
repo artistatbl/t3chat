@@ -54,7 +54,7 @@ export function ApiKeyManager() {
     if (hasChanges) {
       setApiKeys(updatedApiKeys);
     }
-  }, [keys]);
+  }, [keys, apiKeys]);
 
   const handleSaveKey = (provider: Provider) => {
     setIsLoading(prev => ({ ...prev, [provider]: true }));
