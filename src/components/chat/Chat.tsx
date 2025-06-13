@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Messages from '../messages/Messages';
 import ChatInput from './ChatInput';
-import ChatNavigator from './ChatNavigator';
 import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
@@ -11,9 +10,11 @@ import { useConvexChat } from '@/app/hooks/useConvexChat';
 import { client } from '@/lib/client';
 import ThemeToggler from '../ui/ThemeToggler';
 import { Button } from '../ui/button';
-import { MessageSquareMore, ArrowDown } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import { useChatNavigator } from '@/app/hooks/useChatNavigator';
 import { toast } from 'sonner';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import ChatSidebar from '@/components/chat/ChatSidebar';
 
 interface ChatProps {
   threadId: string;
@@ -43,11 +44,7 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
   const {
-    isNavigatorVisible,
-    handleToggleNavigator,
-    closeNavigator,
     registerRef,
-    scrollToMessage,
   } = useChatNavigator();
 
   const scrollToBottom = useCallback(() => {
@@ -425,65 +422,52 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
   }, [messages, append]);
 
   return (
-    <div className="relative w-full">
-      <div className="flex h-screen">
-        <main
-          ref={mainContainerRef}
-          className="flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out overflow-y-auto no-scrollbar"
-        >
-          <Messages
-            threadId={threadId}
-            messages={messages}
-            status={status}
-            setMessages={setMessages}
-            reload={reload}
-            error={error}
-            registerRef={registerRef}
-            stop={stop}
-          />
-          <div ref={messagesEndRef} className="h-32" />
-          <ChatInput
-            threadId={threadId}
-            input={input}
-            status={status}
-            append={append}
-            setInput={setInput}
-            stop={stop}
-          />
-        </main>
-      </div>
-
-      {showScrollIndicator && (
-        <button
-          onClick={scrollToBottom}
-          className="fixed bottom-[150px] right-8 bg-background cursor-pointer dark:text-white text-black  p-1  transition-all"
-          aria-label="Scroll to bottom"
-        >
-          <div className="flex items-center gap-2 px-3 py-1">
-            <span className="text-sm">Scroll To Bottom</span>
-            <ArrowDown className="h-4 w-4" />
+    <SidebarProvider>
+      <ChatSidebar />
+      <div className="flex-1 relative">
+        <div className="relative w-full">
+          <div className="flex h-screen">
+            <main
+              ref={mainContainerRef}
+              className="flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out overflow-y-auto no-scrollbar"
+            >
+              <Messages
+                threadId={threadId}
+                messages={messages}
+                status={status}
+                setMessages={setMessages}
+                reload={reload}
+                error={error}
+                registerRef={registerRef}
+                stop={stop}
+              />
+              <div ref={messagesEndRef} className="h-32" />
+              <ChatInput
+                threadId={threadId}
+                input={input}
+                status={status}
+                append={append}
+                setInput={setInput}
+                stop={stop}
+              />
+            </main>
           </div>
-        </button>
-      )}
+          {showScrollIndicator && (
+            <Button
+              variant="outline"
+              size="icon"
+              className="fixed bottom-32 right-4 md:right-8 z-10 rounded-full shadow-md bg-background/80 backdrop-blur-sm"
+              onClick={scrollToBottom}
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          )}
+          <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
 
-      <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
-        <Button
-          onClick={handleToggleNavigator}
-          variant="outline"
-          size="icon"
-          aria-label={isNavigatorVisible ? 'Hide message navigator' : 'Show message navigator'}
-        >
-          <MessageSquareMore className="h-5 w-5" />
-        </Button>
         <ThemeToggler />
       </div>
-
-      <ChatNavigator
-        threadId={threadId}
-        scrollToMessage={scrollToMessage}
-        isVisible={isNavigatorVisible}
-        onClose={closeNavigator}
-      />
-    </div>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }

@@ -26,32 +26,32 @@ function PureMessages({
   registerRef: (id: string, ref: HTMLDivElement | null) => void;
 }) {
   // Check for duplicate IDs
-  const messageIds = messages.map(m => m.id);
-  const uniqueIds = new Set(messageIds);
-  const hasDuplicates = messageIds.length !== uniqueIds.size;
+  // const messageIds = messages.map(m => m.id);
+  // const uniqueIds = new Set(messageIds);
+  // const hasDuplicates = messageIds.length !== uniqueIds.size;
   
-  if (hasDuplicates) {
-    const duplicates = messageIds.filter((id, index) => messageIds.indexOf(id) !== index);
-    console.error('🚨 Messages: DUPLICATE KEYS DETECTED!', {
-      totalMessages: messages.length,
-      uniqueMessages: uniqueIds.size,
-      duplicateIds: duplicates,
-      allMessageIds: messageIds,
-      messagesWithDetails: messages.map(m => ({
-        id: m.id,
-        role: m.role,
-        content: m.content?.substring(0, 30) + '...',
-        createdAt: m.createdAt
-      }))
-    });
-  }
+  // if (hasDuplicates) {
+  //   const duplicates = messageIds.filter((id, index) => messageIds.indexOf(id) !== index);
+  //   console.error('🚨 Messages: DUPLICATE KEYS DETECTED!', {
+  //     totalMessages: messages.length,
+  //     uniqueMessages: uniqueIds.size,
+  //     duplicateIds: duplicates,
+  //     allMessageIds: messageIds,
+  //     messagesWithDetails: messages.map(m => ({
+  //       id: m.id,
+  //       role: m.role,
+  //       content: m.content?.substring(0, 30) + '...',
+  //       createdAt: m.createdAt
+  //     }))
+  //   });
+  // }
 
-  console.log('🖼️ Messages component rendering:', {
-    messageCount: messages.length,
-    status,
-    hasDuplicates,
-    messageIds: messageIds
-  });
+  // console.log('🖼️ Messages component rendering:', {
+  //   messageCount: messages.length,
+  //   status,
+  //   hasDuplicates,
+  //   messageIds: messageIds
+  // });
 
   return (
     <section className="flex flex-col space-y-12">
