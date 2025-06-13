@@ -45,12 +45,11 @@ const PureChatModelDropdown = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost"
             className={cn(
-              'flex items-center gap-3 h-11 px-4 text-sm rounded-xl transition-all duration-200',
-              'bg-white/5 border-zinc-200/10 hover:bg-white/10',
-              'dark:bg-zinc-800/40 dark:border-zinc-700/50 dark:hover:bg-zinc-800/60',
-              'shadow-sm hover:shadow-md'
+              'flex items-center gap-3 h-7.5 text-sm rounded-lg transition-all duration-200',
+
+
             )}
             aria-label={`Selected model: ${selectedModel}`}
           >
