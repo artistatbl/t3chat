@@ -162,7 +162,7 @@ function PureChatInput({
 
   return (
     <>
-      <div className="fixed bottom-0 w-full  max-w-3xl rounded-lg bg-zinc-900/5 dark:bg-white/5 p-2 ring-4 ring-zinc-900/10 dark:ring-white/10 lg">
+      <div className="fixed bottom-0 w-full  max-w-3xl rounded-lg bg-secondary dark:bg-secondary p-2 ring-4 ring-zinc-900/10 dark:ring-white/10 lg">
         <div className="bg-secondary rounded-xl p-2 pb-0 w-full">
           <div className="relative">
             <div className="flex flex-col">

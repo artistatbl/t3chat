@@ -387,12 +387,12 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
       {showScrollIndicator && (
         <button
           onClick={scrollToBottom}
-          className="fixed bottom-[180px] right-8 bg-primary text-primary-foreground rounded-full p-2 shadow-lg hover:bg-primary/90 transition-all"
+          className="fixed bottom-[150px] right-8 bg-background cursor-pointer dark:text-white text-black  p-1  transition-all"
           aria-label="Scroll to bottom"
         >
           <div className="flex items-center gap-2 px-3 py-1">
+            <span className="text-sm">Scroll To Bottom</span>
             <ArrowDown className="h-4 w-4" />
-            <span className="text-sm">New messages</span>
           </div>
         </button>
       )}
