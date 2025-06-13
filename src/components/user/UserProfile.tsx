@@ -57,7 +57,7 @@ export default function UserProfile() {
     .toUpperCase() || 'U';
 
   return (
-    <Link href="/settings" className="block">
+    <Link href="/settings/account" className="block">
       <Button
         variant="ghost"
         className="w-full h-auto p-3 flex items-center gap-3 hover:bg-secondary transition-colors"
