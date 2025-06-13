@@ -7,6 +7,7 @@ import MessageControls from './MessageControls';
 import { UseChatHelpers } from '@ai-sdk/react';
 import MessageEditor from './MessageEditor';
 import MessageReasoning from './MessageReasoning';
+import Image from 'next/image';
 
 function PureMessage({
   threadId,
@@ -26,6 +27,10 @@ function PureMessage({
   stop: UseChatHelpers['stop'];
 }) {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  
+  // Extract attachments from the message if they exist
+  const attachments = (message as UIMessage & { attachments?: Array<{ name: string; url: string; type: string }> }).attachments || [];
+  const hasAttachments = attachments.length > 0;
 
   return (
     <div
@@ -68,6 +73,32 @@ function PureMessage({
                 />
               )}
               {mode === 'view' && <p>{part.text}</p>}
+              
+              {/* Render attachments for user messages */}
+              {mode === 'view' && hasAttachments && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {attachments.map((attachment, i) => (
+                    <div key={`${message.id}-attachment-${i}`} className="overflow-hidden rounded-lg">
+                      {attachment.type.startsWith('image/') ? (
+                        <div className="relative w-[200px] h-[150px]">
+                          <Image 
+                            src={attachment.url} 
+                            alt={attachment.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="bg-secondary p-2 text-sm">
+                          <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                            {attachment.name}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {mode === 'view' && (
                 <MessageControls
@@ -84,6 +115,9 @@ function PureMessage({
           ) : (
             <div key={key} className="group flex flex-col gap-2 w-full">
               <MarkdownRenderer content={part.text} id={message.id} />
+              
+              {/* Render image attachments for assistant messages if they're in markdown format */}
+              
               {!isStreaming && (
                 <MessageControls
                   threadId={threadId}

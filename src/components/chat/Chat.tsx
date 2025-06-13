@@ -101,7 +101,7 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
             
             // Add attachments if present
             if (msg.attachments && msg.attachments.length > 0) {
-              (message as any).attachments = msg.attachments;
+              (message as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = msg.attachments;
             }
             
             return message;
@@ -148,9 +148,7 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
       const apiKey = getKey(modelConfig.provider);
       if (!apiKey) {
         throw new Error('API key not found');
-      }
-  
-      // Prepare messages for API - improved content extraction
+      }      // Prepare messages for API - improved content extraction
       const apiMessages = [...messages, message].map(msg => {
         let content = '';
         
@@ -173,12 +171,30 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
             .join('');
         }
         
+        // Check for attachments
+        const attachments = (msg as { attachments?: Array<{ name: string; url: string; type: string }> }).attachments;
+        if (attachments && attachments.length > 0) {
+          // Add attachment information to the content
+          const attachmentText = attachments.map((att: { name: string; url: string; type: string }) => {
+            if (att.type.startsWith('image/')) {
+              // For images, include markdown image syntax
+              return `![${att.name}](${att.url})`;
+            } else {
+              // For other file types, use link syntax
+              return `[Attachment: ${att.name} (${att.type})](${att.url})`;
+            }
+          }).join('\n');
+          
+          // Append attachment information to the content
+          content = content + '\n\n' + attachmentText;
+        }
+        
         return {
           role: msg.role,
           content: content,
         };
       });
-  
+
       // Filter out messages with empty content and non-conversation roles
       const validMessages = apiMessages.filter(msg => 
         msg.role !== 'data' && msg.content && msg.content.trim().length > 0
