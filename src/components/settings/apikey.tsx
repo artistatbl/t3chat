@@ -78,8 +78,8 @@ export function ApiKeyManager() {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
+    <Card className="w-full ">
+      <CardHeader className="pb-2">
         <CardTitle className="text-xl">API Keys</CardTitle>
         <CardDescription>
           Configure your API keys to use different AI models. Your keys are stored locally in your browser.
@@ -87,9 +87,13 @@ export function ApiKeyManager() {
       </CardHeader>
       
       <Tabs defaultValue="openai" className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid grid-cols-3 mb-4 bg-transparent p-0 mx-4 mt-2">
           {PROVIDERS.map(provider => (
-            <TabsTrigger key={provider} value={provider} className="capitalize">
+            <TabsTrigger 
+              key={provider} 
+              value={provider} 
+              className="capitalize data-[state=active]:bg-primary/10 data-[state=active]:text-primary border-0 py-2.5"
+            >
               {provider}
             </TabsTrigger>
           ))}
@@ -97,12 +101,12 @@ export function ApiKeyManager() {
         
         {PROVIDERS.map(provider => (
           <TabsContent key={provider} value={provider} className="space-y-4">
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-6 p-6">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <label htmlFor={`${provider}-key`} className="text-sm font-medium flex items-center gap-2">
                     {provider.charAt(0).toUpperCase() + provider.slice(1)} API Key
-                    {keys[provider] && <Badge variant="outline" className="bg-green-500/10 text-green-500">Active</Badge>}
+                    {keys[provider] && <Badge variant="outline" className="bg-green-500/10 text-green-500 border-0 px-2.5 py-0.5">Active</Badge>}
                   </label>
                   
                   {keys[provider] && (
@@ -110,9 +114,9 @@ export function ApiKeyManager() {
                       variant="ghost" 
                       size="sm" 
                       onClick={() => handleClearKey(provider)}
-                      className="h-6 px-2 text-xs text-destructive hover:text-destructive/90"
+                      className="h-7 px-2.5 text-xs text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                     >
-                      <X className="h-3 w-3 mr-1" /> Clear
+                      <X className="h-3.5 w-3.5 mr-1.5" /> Clear
                     </Button>
                   )}
                 </div>
@@ -124,30 +128,30 @@ export function ApiKeyManager() {
                     value={apiKeys[provider]}
                     onChange={(e) => setApiKeys(prev => ({ ...prev, [provider]: e.target.value }))}
                     placeholder={provider === 'openai' ? 'sk-...' : provider === 'google' ? 'AIza...' : 'sk-or-...'}
-                    className="pr-10"
+                    className="pr-10 bg-muted/50 border-0 focus-visible:ring-1 h-10"
                   />
                   <button
                     type="button"
                     onClick={() => toggleShowKey(provider)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none p-1 hover:bg-muted/50 rounded-md transition-colors"
                   >
                     {showKeys[provider] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Available Models</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Available Models</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {modelsByProvider[provider]?.map(model => (
-                    <div key={model.id} className="flex items-center gap-2 p-2 rounded-md border border-border">
+                    <div key={model.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/40 transition-colors">
                       {keys[provider] ? 
-                        <CheckCircle2 className="h-4 w-4 text-green-500" /> : 
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
+                        <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" /> : 
+                        <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0" />
                       }
-                      <div>
-                        <p className="text-sm font-medium">{model.name}</p>
-                        <p className="text-xs text-muted-foreground">{model.description}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{model.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{model.description}</p>
                       </div>
                     </div>
                   ))}
@@ -155,11 +159,11 @@ export function ApiKeyManager() {
               </div>
             </CardContent>
             
-            <CardFooter>
+            <CardFooter className="px-6 pb-6">
               <Button 
                 onClick={() => handleSaveKey(provider)} 
                 disabled={isLoading[provider] || !apiKeys[provider] || apiKeys[provider] === keys[provider]}
-                className="w-full md:w-auto"
+                className="w-full md:w-auto bg-primary hover:bg-primary/90 h-10 px-6"
               >
                 {isLoading[provider] ? 'Saving...' : 'Save API Key'}
               </Button>

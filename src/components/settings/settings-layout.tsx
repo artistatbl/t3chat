@@ -7,95 +7,115 @@ import { KeyboardShortcuts } from '@/components/settings/keyboard-shortcuts';
 import ThemeToggler from '@/components/ui/ThemeToggler';
 import { useClerk } from '@clerk/nextjs';
 import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { ReactNode } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Types
 type SettingsLayoutProps = {
   children: ReactNode;
 };
 
-export function SettingsLayout({ children }: SettingsLayoutProps) {
+type SettingsTab = {
+  value: string;
+  label: string;
+  href: string;
+};
+
+// Constants
+const SETTINGS_TABS: SettingsTab[] = [
+  { value: 'account', label: 'Account', href: '/settings/account' },
+  { value: 'appearance', label: 'Appearance', href: '/settings/appearance' },
+  { value: 'models', label: 'Models', href: '/settings/models' },
+  { value: 'apikey', label: 'API Keys', href: '/settings/apikey' },
+];
+
+// Components
+const Header = () => {
   const { signOut } = useClerk();
   const router = useRouter();
+
+  return (
+    <div className="flex justify-between items-center mb-8">
+      <button
+        onClick={() => router.push('/')}
+        className={buttonVariants({
+          variant: 'ghost',
+          className: 'text-sm cursor-pointer transition-all',
+        })}
+      >
+        <ArrowLeftIcon className="w-4 h-4 mr-2" />
+        Back to chat
+      </button>
+      
+      <div className="flex items-center space-x-4">
+        <ThemeToggler />
+        <button 
+          onClick={() => signOut(() => router.push('/'))}
+          className={buttonVariants({
+            variant: 'ghost',
+            className: 'text-sm cursor-pointer transition-all',
+          })}
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Sidebar = () => (
+  <div className="md:col-span-4 space-y-2">
+    <div className="rounded-xl p-4 backdrop-blur-sm">
+      <ProfileSection />
+    </div>
+    <div className="rounded-xl p-4 backdrop-blur-sm">
+      <KeyboardShortcuts />
+    </div>
+  </div>
+);
+
+const SettingsTabs = ({ activeTab }: { activeTab: string }) => (
+  <Tabs value={activeTab} className="mb-8">
+    <TabsList className="w-full bg-background p-1 rounded-lg flex justify-start">
+      {SETTINGS_TABS.map((tab) => (
+        <Link key={tab.value} href={tab.href} prefetch>
+          <TabsTrigger 
+            value={tab.value} 
+            className="px-6 data-[state=active]:bg-zinc-700/50 data-[state=active]:text-white transition-colors"
+          >
+            {tab.label}
+          </TabsTrigger>
+        </Link>
+      ))}
+    </TabsList>
+  </Tabs>
+);
+
+const Content = ({ children }: { children: ReactNode }) => (
+  <div className="md:col-span-8">
+    <div className="rounded-xl p2 backdrop-blur-sm">
+      {children}
+    </div>
+  </div>
+);
+
+// Main Component
+export function SettingsLayout({ children }: SettingsLayoutProps) {
   const pathname = usePathname();
-  
-  const handleBackToChat = () => router.push('/');
-  const handleSignOut = () => signOut(() => router.push('/'));
-
-  // Determine which tab is active based on the current path
-  const activeTab = pathname === '/settings' ? 'account' : pathname.split('/').pop();
-
-  // Handle tab change by navigating to the corresponding URL
-  const handleTabChange = (value: string) => {
-    router.push(`/settings/${value}`);
-  };
+  const activeTab = pathname === '/settings' ? 'account' : (pathname.split('/').pop() ?? 'account');
 
   return (
     <div className="min-h-screen py-5 px-2">
       <div className="max-w-5xl mx-auto relative">
-        <div className="flex justify-between items-center mb-8">
-          <button
-            onClick={handleBackToChat}
-            className={buttonVariants({
-              variant: 'ghost',
-              className: 'text-sm cursor-pointer transition-all',
-            })}
-          >
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back to chat
-          </button>
-          
-          <div className="flex items-center space-x-4">
-            <ThemeToggler />
-            <button 
-              onClick={handleSignOut}
-              className={buttonVariants({
-                variant: 'ghost',
-                className: 'text-sm cursor-pointer transition-all',
-              })}
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content */}
+        <Header />
+        
         <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-          {/* Left Sidebar */}
-          <div className="md:col-span-4 space-y-2">
-            <div className="rounded-xl p-4 backdrop-blur-sm">
-              <ProfileSection />
-            </div>
-            <div className="rounded-xl p-4 backdrop-blur-sm">
-              <KeyboardShortcuts />
-            </div>
-          </div>
-
-          {/* Right Content */}
-          <div className="md:col-span-8">
-            <div className="rounded-xl p2 backdrop-blur-sm">
-              {/* UI Tabs Component */}
-              <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
-                <TabsList className="w-full bg-zinc-800/50">
-                  <TabsTrigger value="account" className="flex-1 cursor-pointer">
-                    Account
-                  </TabsTrigger>
-                  <TabsTrigger value="appearance" className="flex-1">
-                    Appearance
-                  </TabsTrigger>
-                  <TabsTrigger value="models" className="flex-1">
-                    Models
-                  </TabsTrigger>
-                  <TabsTrigger value="apikey" className="flex-1">
-                    API Keys
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              
-              {/* Page content */}
-              {children}
-            </div>
-          </div>
+          <Sidebar />
+          <Content>
+            <SettingsTabs activeTab={activeTab} />
+            {children}
+          </Content>
         </div>
       </div>
     </div>
