@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Messages from '../messages/Messages';
 import ChatInput from './ChatInput';
 import ChatNavigator from './ChatNavigator';
@@ -11,14 +11,14 @@ import { useConvexChat } from '@/app/hooks/useConvexChat';
 import { client } from '@/lib/client';
 import ThemeToggler from '../ui/ThemeToggler';
 import { Button } from '../ui/button';
-import { MessageSquareMore } from 'lucide-react';
+import { MessageSquareMore, ArrowDown } from 'lucide-react';
 import { useChatNavigator } from '@/app/hooks/useChatNavigator';
 import { toast } from 'sonner';
 
 interface ChatProps {
   threadId: string;
   initialMessages: UIMessage[];
-  onMessageSubmit?: () => void; // Add this optional prop
+  onMessageSubmit?: () => void;
 }
 
 type ChatStatus = 'ready' | 'streaming' | 'submitted' | 'error';
@@ -29,7 +29,6 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
   const modelConfig = useModelStore((state) => state.getModelConfig());
   const addThread = useThreadStore((state) => state.addThread);
   
-  // Add Convex chat hook
   const { saveUserMessage, saveAssistantMessage, saveChatTitle, messages: convexMessages } = useConvexChat(threadId);
 
   const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
@@ -37,7 +36,11 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
   const [status, setStatus] = useState<ChatStatus>('ready');
   const [error, setError] = useState<Error | undefined>(undefined);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false); // Add this flag
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mainContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     isNavigatorVisible,
@@ -46,6 +49,30 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
     registerRef,
     scrollToMessage,
   } = useChatNavigator();
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    if (!mainContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = mainContainerRef.current;
+    const isNotAtBottom = scrollHeight - scrollTop - clientHeight > 100;
+    setShowScrollIndicator(isNotAtBottom);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    const container = mainContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
 
   // Fixed initialization logic - only load once and prevent duplicates
   // In the useEffect where messages are loaded from Convex
@@ -332,7 +359,8 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
     <div className="relative w-full">
       <div className="flex h-screen">
         <main
-          className={`flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out`}
+          ref={mainContainerRef}
+          className="flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out overflow-y-auto no-scrollbar"
         >
           <Messages
             threadId={threadId}
@@ -344,6 +372,7 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
             registerRef={registerRef}
             stop={stop}
           />
+          <div ref={messagesEndRef} className="h-32" />
           <ChatInput
             threadId={threadId}
             input={input}
@@ -354,16 +383,26 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
           />
         </main>
       </div>
+
+      {showScrollIndicator && (
+        <button
+          onClick={scrollToBottom}
+          className="fixed bottom-[180px] right-8 bg-primary text-primary-foreground rounded-full p-2 shadow-lg hover:bg-primary/90 transition-all"
+          aria-label="Scroll to bottom"
+        >
+          <div className="flex items-center gap-2 px-3 py-1">
+            <ArrowDown className="h-4 w-4" />
+            <span className="text-sm">New messages</span>
+          </div>
+        </button>
+      )}
+
       <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
         <Button
           onClick={handleToggleNavigator}
           variant="outline"
           size="icon"
-          aria-label={
-            isNavigatorVisible
-              ? 'Hide message navigator'
-              : 'Show message navigator'
-          }
+          aria-label={isNavigatorVisible ? 'Hide message navigator' : 'Show message navigator'}
         >
           <MessageSquareMore className="h-5 w-5" />
         </Button>
