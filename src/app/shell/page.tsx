@@ -1,8 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 
-const App = dynamic(() => import("@/app/frontend/app"), { ssr: false });
+const App = nextDynamic(() => import("@/app/frontend/app"), { ssr: false });
+export const dynamic = "force-dynamic";
 
 export default function Shell() {
   return <App />;
