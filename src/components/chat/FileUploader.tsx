@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import '@uploadcare/react-uploader/core.css';
+import { toast } from 'sonner';
 
 // File uploader skeleton using the existing Skeleton component
 const FileUploaderSkeleton = () => (
@@ -42,6 +43,13 @@ export default function FileUploader({ onFileUploaded }: FileUploaderProps) {
             
             if (uploadedFiles.length > 0) {
               onFileUploaded(uploadedFiles);
+              
+              // Add toast notification
+              if (uploadedFiles.length === 1) {
+                toast.success(`File "${uploadedFiles[0]?.name ?? 'unknown'}" added to chat`);
+              } else {
+                toast.success(`${uploadedFiles.length} files added to chat`);
+              }
             }
           }}
         />

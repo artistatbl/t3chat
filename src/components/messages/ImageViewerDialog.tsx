@@ -21,7 +21,7 @@ export default function ImageViewerDialog({
         <VisuallyHidden>
           <DialogTitle>{`Image: ${imageName}`}</DialogTitle>
         </VisuallyHidden>
-        <div className="relative w-full h-[80vh] flex items-center justify-center">
+        <div className="relative w-full h-[60vh] flex items-center justify-center">
           <Image
             src={imageUrl}
             alt={imageName}
