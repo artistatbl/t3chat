@@ -3,7 +3,7 @@ import PreviewMessage from './Message';
 import { UIMessage } from 'ai';
 import { UseChatHelpers } from '@ai-sdk/react';
 import equal from 'fast-deep-equal';
-import MessageLoading from '../ui/MessageLoading';
+import MessageLoading from './MessageLoading';
 import Error from '../global/Error';
 
 function PureMessages({
@@ -76,7 +76,7 @@ function PureMessages({
           />
         );
       })}
-      {status === 'submitted' && <MessageLoading />}
+      {(status === 'submitted' || (status === 'streaming' && !messages.find(m => m.role === 'assistant'))) && <MessageLoading />}
       {error && <Error message={error.message} />}
     </section>
   );
