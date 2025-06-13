@@ -1,8 +1,16 @@
 'use client';
 
 import { useRef } from 'react';
-import { FileUploaderRegular } from '@uploadcare/react-uploader';
+import dynamic from 'next/dynamic';
 import '@uploadcare/react-uploader/core.css';
+
+const FileUploaderRegular = dynamic(
+  () => import('@uploadcare/react-uploader').then(mod => ({ default: mod.FileUploaderRegular })),
+  { 
+    ssr: false,
+    loading: () => <div style={{ width: '40px', height: '40px' }}>Loading...</div>
+  }
+);
 
 interface FileUploaderProps {
   onFileUploaded: (files: Array<{ name: string; url: string; type: string }>) => void;
