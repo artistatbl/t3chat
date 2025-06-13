@@ -32,6 +32,9 @@ export function useConvexChat(threadId: string) {
         userId: user.id,
       });
 
+      // Check for attachments
+      const attachments = (message as unknown as { attachments?: { name: string; url: string; type: string }[] }).attachments;
+
       // Save user message
       await createMessage({
         uuid: message.id,
@@ -39,6 +42,7 @@ export function useConvexChat(threadId: string) {
         userId: user.id,
         role: message.role,
         content: message.content,
+        attachments: attachments || undefined,
       });
     } catch (error) {
       console.error("Failed to save user message:", error);

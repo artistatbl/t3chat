@@ -16,6 +16,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { StopIcon } from '../ui/icons';
 import { useMessageSummary } from '@/app/hooks/useMessageSummary';
 import { ChatModelDropdown } from './ModelSelector'; // Added import
+import FileUploader from './FileUploader';
+import AttachmentChip from './AttachmentChip';
 
 interface ChatInputProps {
   threadId: string;
@@ -55,6 +57,7 @@ function PureChatInput({
   const selectedModel = useModelStore((state) => state.selectedModel);
   const [showAPIKeyDialog, setShowAPIKeyDialog] = useState(false);
   const [pendingInput, setPendingInput] = useState('');
+  const [attachments, setAttachments] = useState<Array<{ name: string; url: string; type: string }>>([]);
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 72,
@@ -82,7 +85,7 @@ function PureChatInput({
     const currentInput = textareaRef.current?.value || input;
 
     if (
-      !currentInput.trim() ||
+      (!currentInput.trim() && attachments.length === 0) ||
       status === 'streaming' ||
       status === 'submitted'
     )
@@ -108,8 +111,14 @@ function PureChatInput({
     }
 
     const userMessage = createUserMessage(messageId, currentInput.trim());
+    // Add attachments to the message
+    if (attachments.length > 0) {
+      (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
+    }
+    
     append(userMessage);
     setInput('');
+    setAttachments([]);
     adjustHeight(true);
   }, [
     input,
@@ -123,6 +132,7 @@ function PureChatInput({
     complete,
     router,
     hasApiKeyForCurrentModel,
+    attachments,
   ]);
 
   const handleAPIKeySuccess = useCallback(() => {
@@ -160,12 +170,33 @@ function PureChatInput({
     adjustHeight();
   };
 
+  const handleFileUploaded = (files: Array<{ name: string; url: string; type: string }>) => {
+    setAttachments(prev => [...prev, ...files]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <>
       <div className="fixed bottom-0 w-full  max-w-3xl rounded-lg bg-secondary dark:bg-secondary p-2 ring-4 ring-zinc-900/10 dark:ring-white/10 lg">
         <div className="bg-secondary rounded-xl p-2 pb-0 w-full">
           <div className="relative">
             <div className="flex flex-col">
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2 px-4 py-2">
+                  {attachments.map((file, index) => (
+                    <AttachmentChip 
+                      key={index} 
+                      name={file.name} 
+                      url={file.url}
+                      type={file.type}
+                      onRemove={() => removeAttachment(index)} 
+                    />
+                  ))}
+                </div>
+              )}
               <div className="bg-secondary overflow-y-auto max-h-[300px]">
                 <Textarea
                   id="chat-input"
@@ -192,7 +223,10 @@ function PureChatInput({
 
               <div className="h-14 flex items-center px-2">
                 <div className="flex items-center justify-between w-full">
-                  <ChatModelDropdown />
+                  <div className="flex items-center gap-2">
+                    <ChatModelDropdown />
+                    <FileUploader onFileUploaded={handleFileUploaded} />
+                  </div>
 
                   {status === 'submitted' || status === 'streaming' ? (
                     <StopButton stop={stop} />

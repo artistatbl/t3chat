@@ -25,6 +25,11 @@ export default defineSchema({
     userId: v.string(),
     role: v.string(), // "user" or "assistant"
     content: v.string(),
+    attachments: v.optional(v.array(v.object({
+      name: v.string(),
+      url: v.string(),
+      type: v.string(),
+    }))),
     createdAt: v.number(),
   })
     .index("by_uuid", ["uuid"])

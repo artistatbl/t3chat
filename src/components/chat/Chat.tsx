@@ -90,13 +90,22 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
         // Convert Convex messages to UI messages and sort by createdAt
         const uiMessages: UIMessage[] = convexMessages
           .sort((a, b) => a.createdAt - b.createdAt) // Sort by createdAt field
-          .map(msg => ({
-            parts: [{ type: 'text', text: msg.content }],
-            id: msg.uuid,
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content,
-            createdAt: new Date(msg.createdAt), // Use the createdAt from database
-          }));
+          .map(msg => {
+            const message: UIMessage = {
+              parts: [{ type: 'text', text: msg.content }],
+              id: msg.uuid,
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+              createdAt: new Date(msg.createdAt), // Use the createdAt from database
+            };
+            
+            // Add attachments if present
+            if (msg.attachments && msg.attachments.length > 0) {
+              (message as any).attachments = msg.attachments;
+            }
+            
+            return message;
+          });
         console.log('✅ Loading messages from Convex:', uiMessages.length);
         setMessages(uiMessages);
       } else {

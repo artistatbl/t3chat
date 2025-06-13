@@ -4,6 +4,8 @@
 @plugin 'tailwind-scrollbar';
 
 @custom-variant dark (&:is(.dark *));
+@import "uploadthing/tw/v4";
+@source "../node_modules/@uploadthing/react/dist"; 
 
 :root {
   --background: oklch(0.98 0.01 80); /* Slightly cream white */

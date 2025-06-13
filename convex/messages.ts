@@ -8,6 +8,11 @@ export const createMessage = mutation({
     userId: v.string(),
     role: v.string(),
     content: v.string(),
+    attachments: v.optional(v.array(v.object({
+      name: v.string(),
+      url: v.string(),
+      type: v.string(),
+    }))),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -17,6 +22,7 @@ export const createMessage = mutation({
       userId: args.userId,
       role: args.role,
       content: args.content,
+      attachments: args.attachments,
       createdAt: now,
     });
   },
