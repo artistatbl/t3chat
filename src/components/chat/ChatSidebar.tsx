@@ -10,9 +10,9 @@ import {
   SidebarFooter,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { buttonVariants } from '../ui/button';
+import { Button } from '../ui/button';
 import UserProfile from '../user/UserProfile';
-import Link from 'next/link';
+// import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { memo, useEffect, useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
@@ -104,7 +104,7 @@ export default function ChatSidebar() {
           <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto flex items-center">
             <button
               onClick={(e) => handleTogglePinned(e, chat)}
-              className="p-1 hover:text-pink-500 transition-colors"
+              className="p-1 hover:text-fuchsia-800 transition-colors"
               aria-label={chat.pinned ? "Unpin chat" : "Pin chat"}
             >
               {chat.pinned ? (
@@ -153,7 +153,7 @@ export default function ChatSidebar() {
             {/* Pinned chats */}
             {pinned.length > 0 && (
               <SidebarGroup>
-                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1">Pinned</h3>
+                <h3 className="px-2 text-xs font-semibold text-fuchsia-800 mb-1">Pinned</h3>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {pinned.map(renderChatItem)}
@@ -165,7 +165,7 @@ export default function ChatSidebar() {
             {/* Today's chats */}
             {groupedChats.today.length > 0 && (
               <SidebarGroup>
-                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Today</h3>
+                <h3 className="px-2 text-xs font-semibold text-fuchsia-800 mb-1 mt-3">Today</h3>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {groupedChats.today.map(renderChatItem)}
@@ -177,7 +177,7 @@ export default function ChatSidebar() {
             {/* Yesterday's chats */}
             {groupedChats.yesterday.length > 0 && (
               <SidebarGroup>
-                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Yesterday</h3>
+                <h3 className="px-2 text-xs font-semibold text-fuchsia-800 mb-1 mt-3">Yesterday</h3>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {groupedChats.yesterday.map(renderChatItem)}
@@ -189,7 +189,7 @@ export default function ChatSidebar() {
             {/* Last 7 days chats */}
             {groupedChats.lastWeek.length > 0 && (
               <SidebarGroup>
-                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Last 7 Days</h3>
+                <h3 className="px-2 text-xs font-semibold text-fuchsia-800 mb-1 mt-3">Last 7 Days</h3>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {groupedChats.lastWeek.map(renderChatItem)}
@@ -201,7 +201,7 @@ export default function ChatSidebar() {
             {/* Last 30 days chats */}
             {groupedChats.lastMonth.length > 0 && (
               <SidebarGroup>
-                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Last 30 Days</h3>
+                <h3 className="px-2 text-xs font-semibold text-fuchsia-800 mb-1 mt-3">Last 30 Days</h3>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {groupedChats.lastMonth.map(renderChatItem)}
@@ -213,7 +213,7 @@ export default function ChatSidebar() {
             {/* Older chats */}
             {groupedChats.older.length > 0 && (
               <SidebarGroup>
-                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Older</h3>
+                <h3 className="px-2 text-xs font-semibold text-fuchsia-800 mb-1 mt-3">Older</h3>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {groupedChats.older.map(renderChatItem)}
@@ -230,21 +230,21 @@ export default function ChatSidebar() {
 }
 
 function PureHeader() {
+  const router = useRouter();
+  
   return (
     <SidebarHeader className="flex justify-between items-center gap-4 relative">
-      <SidebarTrigger className="absolute left-1 top-2.5" />
-      <h1 className="text-2xl font-light">
+      <SidebarTrigger className="absolute left-1 top-1.5" />
+      <h1 className="text-1xl font-semibold">
         T3Chat
       </h1>
-      <Link
-        href="/" // Changed to href for Next.js Link
-        className={buttonVariants({
-          variant: 'default',
-          className: 'w-full',
-        })}
+      <Button
+        variant="default"
+        className="w-full bg-fuchsia-950/40 text-white hover:bg-fuchsia-950/20"
+        onClick={() => router.push('/')}
       >
         New Chat
-      </Link>
+      </Button>
     </SidebarHeader>
   );
 }
