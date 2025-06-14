@@ -24,6 +24,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { CommandPalette } from '../command-palette/CommandPalette';
 import { CommandIcon} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ChatItem, useGroupedChats } from '@/utils/chatGrouping';
 
 // Function to get cookie value
 function getCookie(name: string) {
@@ -44,6 +45,9 @@ export default function ChatSidebar() {
   );
   const { state, setOpen } = useSidebar();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  
+  // Use the extracted grouping logic
+  const groupedChats = useGroupedChats(chats);
 
   // Restore sidebar state from cookie on mount
   useEffect(() => {
@@ -68,6 +72,36 @@ export default function ChatSidebar() {
   const handleOpenCommandPalette = () => {
     setCommandPaletteOpen(true);
   };
+
+  // Render a chat item
+  const renderChatItem = (chat: ChatItem) => (
+    <SidebarMenuItem key={chat.uuid} className="group">
+      <div 
+        className={cn(
+          'cursor-pointer group/thread h-9 flex items-center px-2 py-1 rounded-[8px] overflow-hidden w-full hover:bg-secondary',
+          threadId === chat.uuid && 'bg-secondary'
+        )}
+        onClick={() => {
+          if (threadId === chat.uuid) {
+            return;
+          }
+          router.push(`/chat/${chat.uuid}`); // Changed to router.push
+        }}
+      >
+        <span className="truncate block">{chat.title || 'New Chat'}</span>
+        {user && (
+          <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto">
+            <ChatDelete
+              chatUuid={chat.uuid}
+              chatTitle={chat.title || 'New Chat'}
+              userId={user.id}
+              redirectToHome={!!threadId}
+            />
+          </div>
+        )}
+      </div>
+    </SidebarMenuItem>
+  );
 
   return (
     <>
@@ -94,40 +128,65 @@ export default function ChatSidebar() {
         <div className="flex flex-col h-full p-2">
           <Header/>
           <SidebarContent className="no-scrollbar">
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {chats?.map((chat) => (
-                    <SidebarMenuItem key={chat.uuid} className="group">
-                      <div 
-                        className={cn(
-                          'cursor-pointer group/thread h-9 flex items-center px-2 py-1 rounded-[8px] overflow-hidden w-full hover:bg-secondary',
-                          threadId === chat.uuid && 'bg-secondary'
-                        )}
-                        onClick={() => {
-                          if (threadId === chat.uuid) {
-                            return;
-                          }
-                          router.push(`/chat/${chat.uuid}`); // Changed to router.push
-                        }}
-                      >
-                        <span className="truncate block">{chat.title || 'New Chat'}</span>
-                        {user && (
-                          <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto">
-                            <ChatDelete
-                              chatUuid={chat.uuid}
-                              chatTitle={chat.title || 'New Chat'}
-                              userId={user.id}
-                              redirectToHome={!!threadId}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {/* Today's chats */}
+            {groupedChats.today.length > 0 && (
+              <SidebarGroup>
+                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1">Today</h3>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {groupedChats.today.map(renderChatItem)}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            
+            {/* Yesterday's chats */}
+            {groupedChats.yesterday.length > 0 && (
+              <SidebarGroup>
+                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Yesterday</h3>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {groupedChats.yesterday.map(renderChatItem)}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            
+            {/* Last 7 days chats */}
+            {groupedChats.lastWeek.length > 0 && (
+              <SidebarGroup>
+                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Last 7 Days</h3>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {groupedChats.lastWeek.map(renderChatItem)}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            
+            {/* Last 30 days chats */}
+            {groupedChats.lastMonth.length > 0 && (
+              <SidebarGroup>
+                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Last 30 Days</h3>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {groupedChats.lastMonth.map(renderChatItem)}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            
+            {/* Older chats */}
+            {groupedChats.older.length > 0 && (
+              <SidebarGroup>
+                <h3 className="px-2 text-xs font-semibold text-pink-500 mb-1 mt-3">Older</h3>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {groupedChats.older.map(renderChatItem)}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
           </SidebarContent>
           <Footer />
         </div>
