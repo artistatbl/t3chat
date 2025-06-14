@@ -12,8 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { buttonVariants } from '../ui/button';
 import UserProfile from '../user/UserProfile';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, useNavigate, useParams } from 'react-router';
 import { memo, useEffect, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -22,8 +21,8 @@ import ChatDelete from './ChatDelete';
 import { SidebarMenuItem } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { CommandPalette } from '../command-palette/CommandPalette';
-import { CommandIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { CommandIcon} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Function to get cookie value
 function getCookie(name: string) {
@@ -35,22 +34,14 @@ function getCookie(name: string) {
 
 export default function ChatSidebar() {
   const { user } = useUser();
-  const router = useRouter(); // Add this line
+  const { threadId } = useParams(); // Updated to match your URL parameter
+  const navigate = useNavigate();
   const chats = useQuery(
     api.chats.getChatsByUser,
     user ? { userId: user.id } : "skip"
   );
-  const pathname = usePathname();
-  const isThreadRoute = pathname?.startsWith('/chat/');
   const { state, setOpen } = useSidebar();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-
-  // Add this function
-  const handleThreadClick = (e: React.MouseEvent, threadId: string) => {
-    e.preventDefault();
-    // Use router.push with { shallow: true } to avoid full page reload
-    router.push(`/chat/${threadId}`);
-  };
 
   // Restore sidebar state from cookie on mount
   useEffect(() => {
@@ -59,6 +50,18 @@ export default function ChatSidebar() {
       setOpen(sidebarState === 'true');
     }
   }, [setOpen]);
+
+  // Add keyboard shortcut for new chat (similar to reference code)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        navigate('/chat');
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   const handleOpenCommandPalette = () => {
     setCommandPaletteOpen(true);
@@ -94,21 +97,26 @@ export default function ChatSidebar() {
                 <SidebarMenu>
                   {chats?.map((chat) => (
                     <SidebarMenuItem key={chat.uuid} className="group">
-                      <div className="flex items-center w-full">
-                        <a
-                          href={`/chat/${chat.uuid}`}
-                          onClick={(e) => handleThreadClick(e, chat.uuid)}
-                          className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted flex-1 min-w-0"
-                        >
-                          <span className="truncate">{chat.title || 'New Chat'}</span>
-                        </a>
+                      <div 
+                        className={cn(
+                          'cursor-pointer group/thread h-9 flex items-center px-2 py-1 rounded-[8px] overflow-hidden w-full hover:bg-secondary',
+                          threadId === chat.uuid && 'bg-secondary'
+                        )}
+                        onClick={() => {
+                          if (threadId === chat.uuid) {
+                            return;
+                          }
+                          navigate(`/chat/${chat.uuid}`);
+                        }}
+                      >
+                        <span className="truncate block">{chat.title || 'New Chat'}</span>
                         {user && (
-                          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto">
                             <ChatDelete
                               chatUuid={chat.uuid}
                               chatTitle={chat.title || 'New Chat'}
                               userId={user.id}
-                              redirectToHome={isThreadRoute}
+                              redirectToHome={!!threadId}
                             />
                           </div>
                         )}
@@ -134,7 +142,7 @@ function PureHeader() {
         T3Chat
       </h1>
       <Link
-        href="/"
+        to="/"
         className={buttonVariants({
           variant: 'default',
           className: 'w-full',
@@ -149,8 +157,19 @@ function PureHeader() {
 const Header = memo(PureHeader);
 
 const PureFooter = () => {
+  const { threadId } = useParams();
+  
   return (
     <SidebarFooter>
+      <Link
+        to={{
+          pathname: "/settings",
+          search: threadId ? `?from=${encodeURIComponent(threadId)}` : "",
+        }}
+        className={buttonVariants({ variant: "outline" })}
+      >
+        Settings
+      </Link>
       <UserProfile />
     </SidebarFooter>
   );
