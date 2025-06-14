@@ -23,6 +23,7 @@ import { SidebarMenuItem } from '@/components/ui/sidebar';
 import { useSidebar } from '@/components/ui/sidebar';
 import { CommandPalette } from '../command-palette/CommandPalette';
 import { CommandIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // Function to get cookie value
 function getCookie(name: string) {
@@ -34,6 +35,7 @@ function getCookie(name: string) {
 
 export default function ChatSidebar() {
   const { user } = useUser();
+  const router = useRouter(); // Add this line
   const chats = useQuery(
     api.chats.getChatsByUser,
     user ? { userId: user.id } : "skip"
@@ -42,6 +44,13 @@ export default function ChatSidebar() {
   const isThreadRoute = pathname?.startsWith('/chat/');
   const { state, setOpen } = useSidebar();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+
+  // Add this function
+  const handleThreadClick = (e: React.MouseEvent, threadId: string) => {
+    e.preventDefault();
+    // Use router.push with { shallow: true } to avoid full page reload
+    router.push(`/chat/${threadId}`);
+  };
 
   // Restore sidebar state from cookie on mount
   useEffect(() => {
@@ -86,12 +95,13 @@ export default function ChatSidebar() {
                   {chats?.map((chat) => (
                     <SidebarMenuItem key={chat.uuid} className="group">
                       <div className="flex items-center w-full">
-                        <Link
+                        <a
                           href={`/chat/${chat.uuid}`}
+                          onClick={(e) => handleThreadClick(e, chat.uuid)}
                           className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-muted flex-1 min-w-0"
                         >
                           <span className="truncate">{chat.title || 'New Chat'}</span>
-                        </Link>
+                        </a>
                         {user && (
                           <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             <ChatDelete

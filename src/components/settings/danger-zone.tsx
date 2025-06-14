@@ -9,7 +9,11 @@ export function DangerZone() {
       <p className="text-sm text-gray-400 mb-4">
         Permanently delete your account and all associated data.
       </p>
-      <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
+      <Button 
+        variant="destructive" 
+        className="bg-red-600 hover:bg-red-700"
+        disabled={true} // Add this line
+      >
         Delete Account
       </Button>
     </div>
