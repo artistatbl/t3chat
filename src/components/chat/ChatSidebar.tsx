@@ -20,20 +20,17 @@ import { api } from '../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import ChatDelete from './ChatDelete';
 import { SidebarMenuItem } from '@/components/ui/sidebar';
-import { useSidebar } from '@/components/ui/sidebar';
+// Remove the useSidebar import
+// import { useSidebar } from '@/components/ui/sidebar';
 import { CommandPalette } from '../command-palette/CommandPalette';
 import { CommandIcon, Star, StarOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatItem, useGroupedChats } from '@/utils/chatGrouping';
 import { usePinnedChats } from '@/utils/pinnedChats';
+// Import the useSidebarState hook
+import { useSidebarState } from '@/hooks/useSidebarState';
 
-// Function to get cookie value
-function getCookie(name: string) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift();
-  return null;
-}
+// Remove the getCookie function as it's now in the hook
 
 export default function ChatSidebar() {
   const { user } = useUser();
@@ -44,7 +41,9 @@ export default function ChatSidebar() {
     api.chats.getChatsByUser,
     user ? { userId: user.id } : "skip"
   );
-  const { state, setOpen } = useSidebar();
+  
+  // Only destructure what we actually use to avoid the TypeScript warning
+  const { isOpen } = useSidebarState();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const togglePinned = useMutation(api.chats.toggleChatPinned);
   
@@ -52,20 +51,12 @@ export default function ChatSidebar() {
   const { pinned, unpinned } = usePinnedChats(chats);
   const groupedChats = useGroupedChats(unpinned);
 
-  // Restore sidebar state from cookie on mount
-  useEffect(() => {
-    const sidebarState = getCookie('sidebar_state');
-    if (sidebarState !== null) {
-      setOpen(sidebarState === 'true');
-    }
-  }, [setOpen]);
-
   // Add keyboard shortcut for new chat
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
         e.preventDefault();
-        router.push('/chat');
+        router.push('/');
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -131,7 +122,7 @@ export default function ChatSidebar() {
       <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       
       {/* Floating buttons that are visible when sidebar is collapsed */}
-      {state === 'collapsed' && (
+      {!isOpen && (
         <div className="fixed left-4 top-4 z-20 flex items-center gap-2 md:flex ">
           <div className="dark:bg-stone-800 bg-zinc-100 rounded-sm p-1">
             <SidebarTrigger />
