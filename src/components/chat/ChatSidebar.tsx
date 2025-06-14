@@ -158,21 +158,9 @@ function PureHeader() {
 
 const Header = memo(PureHeader);
 
-const PureFooter = () => {
-  const params = useParams(); // Changed to Next.js useParams
-  const threadId = params?.threadId as string; // Adjusted for Next.js params
-  
+const PureFooter = () => {  
   return (
     <SidebarFooter>
-      <Link
-        href={{
-          pathname: "/settings",
-          query: threadId ? { from: threadId } : undefined,
-        }} // Changed to href with pathname and query for Next.js Link
-        className={buttonVariants({ variant: "outline" })}
-      >
-        Settings
-      </Link>
       <UserProfile />
     </SidebarFooter>
   );
