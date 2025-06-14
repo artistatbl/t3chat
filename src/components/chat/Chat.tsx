@@ -15,6 +15,7 @@ import { useChatNavigator } from '@/app/hooks/useChatNavigator';
 import { toast } from 'sonner';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
+// import WelcomeMessage from './WelcomeMessage';
 
 interface ChatProps {
   threadId: string;
@@ -431,16 +432,20 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
               ref={mainContainerRef}
               className="flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out overflow-y-auto no-scrollbar"
             >
-              <Messages
-                threadId={threadId}
-                messages={messages}
-                status={status}
-                setMessages={setMessages}
-                reload={reload}
-                error={error}
-                registerRef={registerRef}
-                stop={stop}
-              />
+              {/* {messages.length === 0 ? (
+                <WelcomeMessage setInput={setInput} />
+              ) : ( */}
+                <Messages
+                  threadId={threadId}
+                  messages={messages}
+                  status={status}
+                  setMessages={setMessages}
+                  reload={reload}
+                  error={error}
+                  registerRef={registerRef}
+                  stop={stop}
+                />
+              {/* )} */}
               <div ref={messagesEndRef} className="h-32" />
               <ChatInput
                 threadId={threadId}
@@ -463,9 +468,8 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
             </Button>
           )}
           <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
-
-        <ThemeToggler />
-      </div>
+            <ThemeToggler />
+          </div>
         </div>
       </div>
     </SidebarProvider>
