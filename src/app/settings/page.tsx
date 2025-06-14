@@ -1,16 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from 'react-router'; // Changed from next/navigation
 import { SettingsLayout } from '@/components/settings/settings-layout';
 
 export default function SettingsPage() {
-  const router = useRouter();
+  const navigate = useNavigate(); // Changed from router to navigate
   
   // Redirect to the account settings page by default
   useEffect(() => {
-    router.push('/settings/account');
-  }, [router]);
+    navigate('/settings/account'); // Changed from router.push
+  }, [navigate]);
 
   return (
     <SettingsLayout>

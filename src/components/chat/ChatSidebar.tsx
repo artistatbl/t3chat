@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/sidebar';
 import { buttonVariants } from '../ui/button';
 import UserProfile from '../user/UserProfile';
-import { Link, useNavigate, useParams } from 'react-router';
+import Link from 'next/link'; // Changed to Next.js Link
+import { useRouter, useParams } from 'next/navigation'; // Changed to Next.js navigation
 import { memo, useEffect, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
@@ -34,8 +35,9 @@ function getCookie(name: string) {
 
 export default function ChatSidebar() {
   const { user } = useUser();
-  const { threadId } = useParams(); // Updated to match your URL parameter
-  const navigate = useNavigate();
+  const params = useParams(); // Changed to Next.js useParams
+  const threadId = params?.threadId as string; // Adjusted for Next.js params
+  const router = useRouter(); // Changed to Next.js router
   const chats = useQuery(
     api.chats.getChatsByUser,
     user ? { userId: user.id } : "skip"
@@ -51,17 +53,17 @@ export default function ChatSidebar() {
     }
   }, [setOpen]);
 
-  // Add keyboard shortcut for new chat (similar to reference code)
+  // Add keyboard shortcut for new chat
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
         e.preventDefault();
-        navigate('/chat');
+        router.push('/chat'); // Changed to router.push
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
+  }, [router]);
 
   const handleOpenCommandPalette = () => {
     setCommandPaletteOpen(true);
@@ -106,7 +108,7 @@ export default function ChatSidebar() {
                           if (threadId === chat.uuid) {
                             return;
                           }
-                          navigate(`/chat/${chat.uuid}`);
+                          router.push(`/chat/${chat.uuid}`); // Changed to router.push
                         }}
                       >
                         <span className="truncate block">{chat.title || 'New Chat'}</span>
@@ -142,7 +144,7 @@ function PureHeader() {
         T3Chat
       </h1>
       <Link
-        to="/"
+        href="/" // Changed to href for Next.js Link
         className={buttonVariants({
           variant: 'default',
           className: 'w-full',
@@ -157,15 +159,16 @@ function PureHeader() {
 const Header = memo(PureHeader);
 
 const PureFooter = () => {
-  const { threadId } = useParams();
+  const params = useParams(); // Changed to Next.js useParams
+  const threadId = params?.threadId as string; // Adjusted for Next.js params
   
   return (
     <SidebarFooter>
       <Link
-        to={{
+        href={{
           pathname: "/settings",
-          search: threadId ? `?from=${encodeURIComponent(threadId)}` : "",
-        }}
+          query: threadId ? { from: threadId } : undefined,
+        }} // Changed to href with pathname and query for Next.js Link
         className={buttonVariants({ variant: "outline" })}
       >
         Settings

@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chat0",
+  title: "T3 Clone",
   description: "Fastest AI Chat App",
 };
 
