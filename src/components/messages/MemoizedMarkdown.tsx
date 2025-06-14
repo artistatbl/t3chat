@@ -8,6 +8,8 @@ import ShikiHighlighter from 'react-shiki';
 import type { ComponentProps } from 'react';
 import type { ExtraProps } from 'react-markdown';
 import { Check, Copy } from 'lucide-react';
+import { toast } from 'sonner'; // Add this import
+// Add missing imports
 
 type CodeComponentProps = ComponentProps<'code'> & ExtraProps;
 type MarkdownSize = 'default' | 'small';
@@ -60,11 +62,13 @@ function Codebar({ lang, codeString }: { lang: string; codeString: string }) {
     try {
       await navigator.clipboard.writeText(codeString);
       setCopied(true);
+      toast.success(`${lang} code copied to clipboard`); // Add this line
       setTimeout(() => {
         setCopied(false);
       }, 2000);
     } catch (error) {
       console.error('Failed to copy code to clipboard:', error);
+      toast.error('Failed to copy code to clipboard'); // Add this line for error handling
     }
   };
 

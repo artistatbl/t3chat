@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Check, Copy, RefreshCcw, SquarePen } from 'lucide-react';
 import { UIMessage } from 'ai';
 import { UseChatHelpers } from '@ai-sdk/react';
+import { toast } from 'sonner';
 
 interface MessageControlsProps {
   threadId: string;
@@ -29,6 +30,8 @@ export default function MessageControls({
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
     setCopied(true);
+    toast.success('Copied to clipboard');
+    
     setTimeout(() => {
       setCopied(false);
     }, 2000);
