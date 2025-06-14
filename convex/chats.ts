@@ -123,3 +123,33 @@ export const deleteChat = mutation({
     return { success: true };
   },
 });
+
+export const toggleChatPinned = mutation({
+  args: {
+    uuid: v.string(),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const chat = await ctx.db
+      .query("chats")
+      .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
+      .first();
+
+    if (!chat) {
+      throw new Error("Chat not found");
+    }
+
+    // Verify the user owns this chat
+    if (chat.userId !== args.userId) {
+      throw new Error("Unauthorized: You can only pin your own chats");
+    }
+
+    // Toggle the pinned status
+    await ctx.db.patch(chat._id, {
+      pinned: !chat.pinned,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true, pinned: !chat.pinned };
+  },
+});

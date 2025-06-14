@@ -5,6 +5,7 @@ export interface ChatItem {
   uuid: string;
   userId: string;
   title?: string;
+  pinned?: boolean;
   createdAt: number;
   updatedAt: number;
   _id: string;

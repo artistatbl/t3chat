@@ -13,6 +13,7 @@ export default defineSchema({
     uuid: v.string(),
     userId: v.string(),
     title: v.optional(v.string()),
+    pinned: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
