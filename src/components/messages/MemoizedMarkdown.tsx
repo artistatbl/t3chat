@@ -1,52 +1,55 @@
-import { memo, useMemo, useState, createContext, useContext } from 'react';
-import ReactMarkdown, { type Components } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import { marked } from 'marked';
-import ShikiHighlighter from 'react-shiki';
-import type { ComponentProps } from 'react';
-import type { ExtraProps } from 'react-markdown';
-import { Check, Copy } from 'lucide-react';
-import { toast } from 'sonner'; // Add this import
-// Add missing imports
+import { memo, useMemo, useState, createContext, useContext } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import { marked } from "marked";
+import ShikiHighlighter from "react-shiki";
+import type { ComponentProps } from "react";
+import type { ExtraProps } from "react-markdown";
+import { Copy } from "lucide-react";
+import { toast } from "sonner";
 
-type CodeComponentProps = ComponentProps<'code'> & ExtraProps;
-type MarkdownSize = 'default' | 'small';
+type CodeComponentProps = ComponentProps<"code"> & ExtraProps;
+type MarkdownSize = "default" | "small";
 
 // Context to pass size down to components
-const MarkdownSizeContext = createContext<MarkdownSize>('default');
+const MarkdownSizeContext = createContext<MarkdownSize>("default");
 
 const components: Components = {
-  code: CodeBlock as Components['code'],
+  code: CodeBlock as Components["code"],
   pre: ({ children }) => <>{children}</>,
 };
 
 function CodeBlock({ children, className, ...props }: CodeComponentProps) {
   const size = useContext(MarkdownSizeContext);
-  const match = /language-(\w+)/.exec(className || '');
+  const match = /language-(\w+)/.exec(className || "");
 
   if (match) {
-    const lang = match[1] || 'text'; // Provide a default value if match[1] is undefined
+    const lang = match[1] || "text";
     return (
-      <div className="rounded-none">
+      <div className="my-4">
         <Codebar lang={lang} codeString={String(children)} />
-        <ShikiHighlighter
-          language={lang}
-          theme={'material-theme-darker'}
-          className="text-sm font-mono rounded-full"
-          showLanguage={false}
-        >
-          {String(children)}
-        </ShikiHighlighter>
+        <div className="relative">
+          <ShikiHighlighter
+            language={lang}
+            theme={"vesper"}
+            className="text-sm  font-mono overflow-x-auto"
+            showLanguage={false}
+          >
+            {String(children)}
+          </ShikiHighlighter>
+        </div>
       </div>
     );
   }
+//synthwave-84
+//vesper
 
   const inlineCodeClasses =
-    size === 'small'
-      ? 'mx-0.5 overflow-auto rounded-md px-1 py-0.5 bg-primary/10 text-foreground font-mono text-xs'
-      : 'mx-0.5 overflow-auto rounded-md px-2 py-1 bg-primary/10 text-foreground font-mono';
+    size === "small"
+      ? "mx-1 px-2 py-0.5 bg-fuchsia-50 dark:bg-fuchsia-950/30 text-fuchsia-800 dark:text-fuchsia-200 font-mono text-xs "
+      : "mx-1 px-2 py-1 bg-fuchsia-50 dark:bg-fuchsia-950/30 text-fuchsia-800 dark:text-fuchsia-200 font-mono text-sm ";
 
   return (
     <code className={inlineCodeClasses} {...props}>
@@ -62,21 +65,29 @@ function Codebar({ lang, codeString }: { lang: string; codeString: string }) {
     try {
       await navigator.clipboard.writeText(codeString);
       setCopied(true);
-      toast.success(`${lang} code copied to clipboard`); // Add this line
+      toast.success(`${lang} code copied to clipboard`);
       setTimeout(() => {
         setCopied(false);
       }, 2000);
     } catch (error) {
-      console.error('Failed to copy code to clipboard:', error);
-      toast.error('Failed to copy code to clipboard'); // Add this line for error handling
+      console.error("Failed to copy code to clipboard:", error);
+      toast.error("Failed to copy code to clipboard");
     }
   };
 
   return (
-    <div className="flex justify-between items-center px-4 py-2 bg-secondary text-foreground rounded-t-md">
-      <span className="text-sm font-mono">{lang}</span>
-      <button onClick={copyToClipboard} className="text-sm cursor-pointer">
-        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+    <div className="flex justify-between items-center px-4 py-3 dark:bg-fuchsia-950/20 bg-fuchsia-950/30  ">
+      <span className="text-sm font-semibold text-black dark:text-white font-mono tracking-wide">
+        {lang}
+      </span>
+      <button
+        onClick={copyToClipboard}
+        className="flex items-center cursor-pointer gap-2 text-sm"
+        title={copied ? "Copied!" : "Copy code"}
+      >
+        <>
+          <Copy className="w-4 h-4" />
+        </>
       </button>
     </div>
   );
@@ -107,13 +118,13 @@ const MarkdownRendererBlock = memo(
   }
 );
 
-MarkdownRendererBlock.displayName = 'MarkdownRendererBlock';
+MarkdownRendererBlock.displayName = "MarkdownRendererBlock";
 
 const MemoizedMarkdown = memo(
   ({
     content,
     id,
-    size = 'default',
+    size = "default",
   }: {
     content: string;
     id: string;
@@ -122,9 +133,9 @@ const MemoizedMarkdown = memo(
     const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
 
     const proseClasses =
-      size === 'small'
-        ? 'prose prose-sm dark:prose-invert bread-words max-w-none w-full prose-code:before:content-none prose-code:after:content-none'
-        : 'prose prose-base dark:prose-invert bread-words max-w-none w-full prose-code:before:content-none prose-code:after:content-none';
+      size === "small"
+        ? "prose prose-sm dark:prose-invert break-words max-w-none w-full prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:m-0 prose-pre:bg-transparent"
+        : "prose prose-base dark:prose-invert break-words max-w-none w-full prose-code:before:content-none prose-code:after:content-none prose-pre:p-0 prose-pre:m-0 prose-pre:bg-transparent";
 
     return (
       <MarkdownSizeContext.Provider value={size}>
@@ -141,6 +152,6 @@ const MemoizedMarkdown = memo(
   }
 );
 
-MemoizedMarkdown.displayName = 'MemoizedMarkdown';
+MemoizedMarkdown.displayName = "MemoizedMarkdown";
 
 export default MemoizedMarkdown;
