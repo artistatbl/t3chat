@@ -13,34 +13,12 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
 import { useModelStore } from '@/app/stores/ModelStore';
 import { getModelConfig, getAvailableModels } from '@/lib/models';
+import { PROVIDER_CONFIG } from '@/lib/provider-config';
 import { Badge } from '../ui/badge';
-
-// Provider configurations
-const PROVIDER_CONFIG = {
-  google: {
-    name: 'Google',
-    placeholder: 'AIza...',
-    createUrl: 'https://aistudio.google.com/apikey',
-    models: ['Gemini 2.5 Flash', 'gemini-1.5-pro']
-  },
-  openai: {
-    name: 'OpenAI',
-    placeholder: 'sk-...',
-    createUrl: 'https://platform.openai.com/api-keys',
-    models: ['gpt-4o', 'gpt-4-turbo']
-  },
-  openrouter: {
-    name: 'OpenRouter',
-    placeholder: 'sk-or-...',
-    createUrl: 'https://openrouter.ai/keys',
-    models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku', 'llama-3-70b', 'llama-3-8b', 'mistral-large', 'command-r-plus']
-  }
-};
 
 interface APIKeyDialogProps {
   open: boolean;
@@ -106,53 +84,74 @@ export default function APIKeyDialog({ open, onOpenChange, onSuccess }: APIKeyDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
+      <DialogContent className="sm:max-w-md bg-card border border-border shadow-lg">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-lg font-semibold text-foreground">
             {providerInfo.name} API Key Required
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground leading-relaxed">
             You need to provide a {providerInfo.name} API key to use {selectedModel}. Your key will be stored locally in your browser.
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor={provider} className="text-sm font-medium">
-              {providerInfo.name} API Key <span className="text-muted-foreground">(Required)</span>
-            </label>
-            
-            <div className="flex gap-2 mb-2 flex-wrap">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Available Models Section */}
+          <div className="space-y-3">
+            <div className="text-sm font-medium text-foreground">
+              Available Models
+            </div>
+            <div className="flex gap-2 flex-wrap">
               {providerModels.map((model) => (
-                <Badge key={model.id} variant={model.id === selectedModel ? "default" : "secondary"}>
+                <Badge 
+                  key={model.id} 
+                  variant={model.id === selectedModel ? "default" : "secondary"}
+                  className="transition-all duration-200"
+                >
                   {model.name}
                 </Badge>
               ))}
             </div>
+          </div>
+
+          {/* API Key Input Section */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor={provider} className="text-sm font-medium text-foreground">
+                {providerInfo.name} API Key
+                <span className="text-destructive ml-1">*</span>
+              </label>
+              
+              <Input
+                id={provider}
+                placeholder={providerInfo.placeholder}
+                {...register(provider)}
+                className={`transition-all duration-200 ${
+                  errors[provider] 
+                    ? 'border-destructive focus:border-destructive' 
+                    : 'border-input focus:border-ring'
+                }`}
+              />
+              
+              {errors[provider] && (
+                <div className="text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md border border-destructive/20">
+                  {errors[provider]?.message}
+                </div>
+              )}
+            </div>
             
-            <Input
-              id={provider}
-              placeholder={providerInfo.placeholder}
-              {...register(provider)}
-              className={errors[provider] ? 'border-red-500' : ''}
-            />
-            
+            {/* Create API Key Link */}
             <a
               href={providerInfo.createUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-500 inline w-fit hover:underline"
+              className="inline-block text-sm text-primary hover:text-primary/80 transition-colors duration-200 underline underline-offset-4"
             >
-              Create {providerInfo.name} API Key
+              Don&lsquo;t have an API key? Create one here
             </a>
-            
-            {errors[provider] && (
-              <p className="text-sm text-red-500">{errors[provider]?.message}</p>
-            )}
           </div>
           
-          <div className="flex gap-2 pt-4">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"

@@ -212,10 +212,10 @@ function PureChatInput({
                 <Textarea
                   id="chat-input"
                   value={input}
-                  placeholder="What can I do for you?"
+                  placeholder="Type your message here..."
                   className={cn(
                     'w-full px-4 py-3 border-none shadow-none dark:bg-transparent',
-                    'placeholder:text-zinc-950 dark:placeholder:text-zinc-100 resize-none',
+                    'placeholder:text-zinc-600 text-sm dark:placeholder:text-zinc-300 resize-none',
                     'focus-visible:ring-0 focus-visible:ring-offset-0',
                     'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/30',
                     'scrollbar-thumb-rounded-full',
