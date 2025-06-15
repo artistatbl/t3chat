@@ -6,6 +6,7 @@ export const createChat = mutation({
     uuid: v.string(),
     userId: v.string(),
     title: v.optional(v.string()),
+    isPublic: v.optional(v.boolean()), // Add this field
   },
   handler: async (ctx, args) => {
     const existingChat = await ctx.db
@@ -21,7 +22,8 @@ export const createChat = mutation({
     return await ctx.db.insert("chats", {
       uuid: args.uuid,
       userId: args.userId,
-      title: args.title || "New Chat", // Provide default title
+      title: args.title || "New Chat",
+      isPublic: args.isPublic ?? false, // Default to private
       createdAt: now,
       updatedAt: now,
     });
@@ -63,23 +65,23 @@ export const getChatByUuid = query({
   args: { uuid: v.string() },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null; // User not authenticated
-    }
-    
-    const userId = identity.subject;
     
     const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
       .first();
     
-    // Return null if chat doesn't exist or doesn't belong to the user
-    if (!chat || chat.userId !== userId) {
+    if (!chat) {
       return null;
     }
     
-    return chat;
+    // Allow access if:
+    // 1. Chat is public, OR
+    // 2. User is authenticated and owns the chat
+    const userId = identity?.subject;
+    const canAccess = chat.isPublic || (userId && chat.userId === userId);
+    
+    return canAccess ? chat : null;
   },
 });
 
@@ -89,6 +91,17 @@ export const getChatsByUser = query({
     return await ctx.db
       .query("chats")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const getPublicChats = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("chats")
+      .filter((q) => q.eq(q.field("isPublic"), true))
       .order("desc")
       .collect();
   },
@@ -158,5 +171,35 @@ export const toggleChatPinned = mutation({
     });
 
     return { success: true, pinned: !chat.pinned };
+  },
+});
+
+export const updateChatVisibility = mutation({
+  args: {
+    uuid: v.string(),
+    userId: v.string(),
+    isPublic: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const chat = await ctx.db
+      .query("chats")
+      .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
+      .first();
+
+    if (!chat) {
+      throw new Error("Chat not found");
+    }
+
+    // Verify the user owns this chat
+    if (chat.userId !== args.userId) {
+      throw new Error("Unauthorized: You can only modify your own chats");
+    }
+
+    await ctx.db.patch(chat._id, {
+      isPublic: args.isPublic,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true, isPublic: args.isPublic };
   },
 });

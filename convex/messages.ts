@@ -32,27 +32,32 @@ export const getMessagesByChat = query({
   args: { chatId: v.string() },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return []; // User not authenticated
-    }
     
-    const userId = identity.subject;
-    
-    // First, verify the chat belongs to the user
+    // First, get the chat to check its visibility
     const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.chatId))
       .first();
     
-    if (!chat || chat.userId !== userId) {
-      return []; // Chat doesn't exist or doesn't belong to the user
+    if (!chat) {
+      return []; // Chat doesn't exist
     }
     
-    // If chat belongs to user, return messages
+    // Allow access if:
+    // 1. Chat is public, OR
+    // 2. User is authenticated and owns the chat
+    const userId = identity?.subject;
+    const canAccess = chat.isPublic || (userId && chat.userId === userId);
+    
+    if (!canAccess) {
+      return []; // No access to private chat
+    }
+    
+    // Return messages for accessible chats
     return await ctx.db
       .query("messages")
       .withIndex("by_chat", (q) => q.eq("chatId", args.chatId))
-      .order("asc") // This orders by createdAt ascending
+      .order("asc")
       .collect();
   },
 });

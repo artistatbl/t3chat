@@ -15,7 +15,10 @@ import { useChatNavigator } from '@/app/hooks/useChatNavigator';
 import { toast } from 'sonner';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import ChatSidebar from '@/components/chat/ChatSidebar';
-// import WelcomeMessage from './WelcomeMessage';
+import ChatVisibilityToggle from './ChatVisibilityToggle'; // Add this import
+import { useUser } from '@clerk/nextjs'; // Add this import
+import { useQuery } from 'convex/react'; // Add this import
+import { api } from '../../../convex/_generated/api'; // Add this import
 
 interface ChatProps {
   threadId: string;
@@ -26,6 +29,14 @@ interface ChatProps {
 type ChatStatus = 'ready' | 'streaming' | 'submitted' | 'error';
 
 export default function Chat({ threadId, initialMessages, onMessageSubmit }: ChatProps) {
+  const { user } = useUser(); // Add this
+  
+  // Add this query to get current chat data
+  const currentChat = useQuery(
+    api.chats.getChatByUuid,
+    threadId ? { uuid: threadId } : "skip"
+  );
+  
   const { getKey } = useAPIKeyStore();
   const selectedModel = useModelStore((state) => state.selectedModel);
   const modelConfig = useModelStore((state) => state.getModelConfig());
@@ -428,20 +439,16 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
               ref={mainContainerRef}
               className="flex flex-col w-full max-w-3xl pt-10 pb-44 mx-auto transition-all duration-300 ease-in-out overflow-y-auto no-scrollbar"
             >
-              {/* {messages.length === 0 ? (
-                <WelcomeMessage setInput={setInput} />
-              ) : ( */}
-                <Messages
-                  threadId={threadId}
-                  messages={messages}
-                  status={status}
-                  setMessages={setMessages}
-                  reload={reload}
-                  error={error}
-                  registerRef={registerRef}
-                  stop={stop}
-                />
-              {/* )} */}
+              <Messages
+                threadId={threadId}
+                messages={messages}
+                status={status}
+                setMessages={setMessages}
+                reload={reload}
+                error={error}
+                registerRef={registerRef}
+                stop={stop}
+              />
               <div ref={messagesEndRef} className="h-32" />
               <ChatInput
                 threadId={threadId}
@@ -452,10 +459,6 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
                 stop={stop}
                 saveChatTitle={saveChatTitle}
                 isNewChat={messages.length === 0}
-                // isInitialized={isInitialized}
-                // initialMessages={initialMessages}
-                // onMessageSubmit={onMessageSubmit}
-
               />
             </main>
           </div>
@@ -469,7 +472,15 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
               <ArrowDown className="h-4 w-4" />
             </Button>
           )}
-          <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
+          <div className="fixed top-4 right-4 flex items-center gap-2 z-20">
+            {/* Add the ChatVisibilityToggle here */}
+            {user && currentChat && (
+              <ChatVisibilityToggle
+                chatUuid={threadId}
+                userId={user.id}
+                initialIsPublic={currentChat.isPublic || false}
+              />
+            )}
             <ThemeToggler />
           </div>
         </div>
