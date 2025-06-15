@@ -96,6 +96,29 @@ A full-stack, real-time AI chat application built with the T3 stack, featuring m
 - Clerk account
 - AI provider API keys (OpenAI, Google, etc.)
 
+
+### Environment Variables
+Create a `.env` file in the root directory and add the following:
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CONVEX_URL=
+CONVEX_DEPLOYMENT=dev:
+NEXT_PUBLIC_CONVEX_URL=
+NEXT_PUBLIC_CLERK_ISSUER=
+NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY=
+UPLOADTHING_TOKEN=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/
+# To chat to the ai you need you know key: These are save locally in your browser
+# You can get them from the ai provider you want to use
+OPENAI_API_KEY=your-openai-api-key
+GOOGLE_API_KEY=your-google-api-key
+OPENROUTER_API_KEY=your-openrouter-api-key
+```
+
 ### Installation
 
 To run "T3chat" Clone locally, you'll need to follow these steps:
