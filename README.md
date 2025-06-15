@@ -98,8 +98,6 @@ A full-stack, real-time AI chat application built with the T3 stack, featuring m
 
 ### Installation
 
-## 💻 Running Locally
-
 To run "T3chat" Clone locally, you'll need to follow these steps:
 
 1. **Clone the repository:**
