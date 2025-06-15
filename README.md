@@ -98,8 +98,30 @@ A full-stack, real-time AI chat application built with the T3 stack, featuring m
 
 ### Installation
 
-1. **Clone the repository**
+## 💻 Running Locally
+
+To run "T3chat" Clone locally, you'll need to follow these steps:
+
+1. **Clone the repository:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/artistatbl/t3chat
    cd t3chat
    ```
+
+2. **Install dependencies:**
+   We use `pnpm` for package management.
+   ```bash
+   pnpm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   pnpm dev
+   ```
+
+4. **Open your browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000) to see the application in action.
+
+## 🐛 Issues & Support
+
+If you encounter any issues or have questions, please [open an issue](https://github.com/artistatbl/t3chatissues) on GitHub.
