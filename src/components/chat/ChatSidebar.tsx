@@ -23,7 +23,8 @@ import { SidebarMenuItem } from '@/components/ui/sidebar';
 // Remove the useSidebar import
 // import { useSidebar } from '@/components/ui/sidebar';
 import { CommandPalette } from '../command-palette/CommandPalette';
-import { CommandIcon, Star, StarOff } from 'lucide-react';
+// Add GitBranch import at the top
+import { CommandIcon, Star, StarOff, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatItem, useGroupedChats } from '@/utils/chatGrouping';
 import { usePinnedChats } from '@/utils/pinnedChats';
@@ -155,7 +156,19 @@ export default function ChatSidebar() {
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className="truncate block">{chat.title || 'New Chat'}</span>
+          <div className="flex items-center gap-2 truncate">
+            {chat.parentChatId && (
+              <div className="flex-shrink-0 flex items-center">
+                <GitBranch className="h-3.5 w-3.5 text-blue-500" />
+                {chat.branchDepth && chat.branchDepth > 1 && (
+                  <span className="text-xs bg-blue-500 text-white rounded-full w-4 h-4 flex items-center justify-center ml-1 font-medium">
+                    {chat.branchDepth}
+                  </span>
+                )}
+              </div>
+            )}
+            <span className="truncate block">{chat.title || 'New Chat'}</span>
+          </div>
         )}
         {user && editingChatId !== chat.uuid && (
           <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto flex items-center">

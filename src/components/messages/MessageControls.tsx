@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
-import { Check, Copy, RefreshCcw, SquarePen } from 'lucide-react';
+import { Check, Copy, RefreshCcw, SquarePen, GitBranch } from 'lucide-react';
 import { UIMessage } from 'ai';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ interface MessageControlsProps {
   setMode?: Dispatch<SetStateAction<'view' | 'edit'>>;
   reload: () => void;
   stop: UseChatHelpers['stop'];
+  onBranch?: (messageId: string) => void; // New prop for branching
 }
 
 export default function MessageControls({
@@ -24,6 +25,7 @@ export default function MessageControls({
   setMode,
   reload,
   stop,
+  onBranch,
 }: MessageControlsProps) {
   const [copied, setCopied] = useState(false);
 
@@ -37,28 +39,29 @@ export default function MessageControls({
     }, 2000);
   };
 
+  const handleBranch = () => {
+    if (onBranch) {
+      onBranch(message.id);
+    }
+  };
+
   const handleRegenerate = async () => {
-    // stop the current request
     stop();
 
     if (message.role === 'user') {
       setMessages((messages) => {
         const index = messages.findIndex((m) => m.id === message.id);
-
         if (index !== -1) {
           return [...messages.slice(0, index + 1)];
         }
-
         return messages;
       });
     } else {
       setMessages((messages) => {
         const index = messages.findIndex((m) => m.id === message.id);
-
         if (index !== -1) {
           return [...messages.slice(0, index)];
         }
-
         return messages;
       });
     }
@@ -83,6 +86,16 @@ export default function MessageControls({
       {message.role === 'user' && setMode && (
         <Button variant="ghost" size="icon" onClick={() => setMode('edit')}>
           <SquarePen className="w-4 h-4" />
+        </Button>
+      )}
+      {onBranch && message.role === 'assistant' && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleBranch}
+          title="Create branch from this message"
+        >
+          <GitBranch className="w-4 h-4" />
         </Button>
       )}
       <Button variant="ghost" size="icon" onClick={handleRegenerate}>

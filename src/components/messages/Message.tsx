@@ -18,6 +18,7 @@ function PureMessage({
   isStreaming,
   registerRef,
   stop,
+  onBranch,
 }: {
   threadId: string;
   message: UIMessage;
@@ -26,6 +27,7 @@ function PureMessage({
   isStreaming: boolean;
   registerRef: (id: string, ref: HTMLDivElement | null) => void;
   stop: UseChatHelpers['stop'];
+  onBranch?: (messageId: string) => Promise<void>;
 }) {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [selectedImage, setSelectedImage] = useState<{url: string; name: string} | null>(null);
@@ -122,6 +124,7 @@ function PureMessage({
                   setMessages={setMessages}
                   reload={reload}
                   stop={stop}
+                  onBranch={onBranch}
                 />
               )}
             </div>
@@ -138,6 +141,7 @@ function PureMessage({
                   setMessages={setMessages}
                   reload={reload}
                   stop={stop}
+                  onBranch={onBranch}
                 />
               )}
             </div>

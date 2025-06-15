@@ -17,13 +17,18 @@ export default defineSchema({
     uuid: v.string(),
     userId: v.string(),
     title: v.string(),
-    isPublic: v.boolean(), // Add this line to include the isPublic field
+    isPublic: v.boolean(),
     pinned: v.optional(v.boolean()),
+    // New fields for branching
+    parentChatId: v.optional(v.string()), // UUID of parent chat if this is a branch
+    branchFromMessageId: v.optional(v.string()), // Message ID where this branch started
+    branchDepth: v.optional(v.number()), // How many levels deep this branch is
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_uuid", ["uuid"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_parent", ["parentChatId"]), // New index for finding branches
   
   messages: defineTable({
     uuid: v.string(),

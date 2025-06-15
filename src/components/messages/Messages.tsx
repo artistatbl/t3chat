@@ -15,6 +15,7 @@ function PureMessages({
   reload,
   stop,
   registerRef,
+  onBranch,
 }: {
   threadId: string;
   messages: UIMessage[];
@@ -24,6 +25,7 @@ function PureMessages({
   error: UseChatHelpers['error'];
   stop: UseChatHelpers['stop'];
   registerRef: (id: string, ref: HTMLDivElement | null) => void;
+  onBranch: (messageId: string) => Promise<void>;
 }) {
   // Check for duplicate IDs
   // const messageIds = messages.map(m => m.id);
@@ -73,6 +75,7 @@ function PureMessages({
             reload={reload}
             registerRef={registerRef}
             stop={stop}
+            onBranch={onBranch}
           />
         );
       })}

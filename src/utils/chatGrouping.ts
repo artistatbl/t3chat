@@ -9,6 +9,8 @@ export interface ChatItem {
   createdAt: number;
   updatedAt: number;
   _id: string;
+  parentChatId?: string; // UUID of parent chat if this is a branch
+  branchDepth?: number; // How many levels deep this branch is
 }
 
 // Interface for grouped chats
