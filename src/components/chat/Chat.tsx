@@ -125,17 +125,13 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
     // Save user message to database
     await saveUserMessage(message);
 
-    // Create thread name from first message
+    // For new chats, we'll let the AI generate the title via ChatInput
+    // No need to create a truncated title here anymore
     if (messages.length === 0) {
-      const threadName = message.content.slice(0, 30) + (message.content.length > 30 ? '...' : '');
-      addThread(threadId, threadName);
-      // Save chat title to database
-      await saveChatTitle(threadName);
-      
-      // Call onMessageSubmit if provided - this will redirect to the thread page
-      if (onMessageSubmit) {
-        onMessageSubmit();
-      }
+    // Call onMessageSubmit if provided - this will redirect to the thread page
+    if (onMessageSubmit) {
+    onMessageSubmit();
+    }
     }
 
     // Create abort controller for this request
@@ -454,6 +450,12 @@ export default function Chat({ threadId, initialMessages, onMessageSubmit }: Cha
                 append={append}
                 setInput={setInput}
                 stop={stop}
+                saveChatTitle={saveChatTitle}
+                isNewChat={messages.length === 0}
+                // isInitialized={isInitialized}
+                // initialMessages={initialMessages}
+                // onMessageSubmit={onMessageSubmit}
+
               />
             </main>
           </div>

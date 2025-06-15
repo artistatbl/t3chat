@@ -15,7 +15,7 @@ import { UIMessage } from 'ai';
 import { v4 as uuidv4 } from 'uuid';
 import { StopIcon } from '../ui/icons';
 import { useMessageSummary } from '@/app/hooks/useMessageSummary';
-import { ChatModelDropdown } from './ModelSelector'; // Added import
+import { ChatModelDropdown } from './ModelSelector';
 import FileUploader from './FileUploader';
 import AttachmentChip from './AttachmentChip';
 
@@ -26,6 +26,8 @@ interface ChatInputProps {
   setInput: UseChatHelpers['setInput'];
   append: (message: UIMessage) => Promise<void>;
   stop: UseChatHelpers['stop'];
+  saveChatTitle: (title: string) => Promise<void>;
+  isNewChat?: boolean; // Add this prop to detect new chats
 }
 
 interface StopButtonProps {
@@ -52,6 +54,8 @@ function PureChatInput({
   setInput,
   append,
   stop,
+  saveChatTitle,
+  isNewChat = false,
 }: ChatInputProps) {
   const getKey = useAPIKeyStore((state) => state.getKey);
   const selectedModel = useModelStore((state) => state.selectedModel);
@@ -65,13 +69,11 @@ function PureChatInput({
   });
 
   const router = useRouter();
-  // For dynamic routes, we check if we're on a specific thread by checking if threadId is not a new UUID
   const id = threadId && threadId.length > 0 ? threadId : null;
 
-  // Update the isDisabled check to enable the button when there are attachments
   const isDisabled = useMemo(
     () => ((!input.trim() && attachments.length === 0) || status === 'streaming' || status === 'submitted'),
-    [input, status, attachments.length] // Add attachments.length as a dependency
+    [input, status, attachments.length]
   );
 
   const { complete } = useMessageSummary();
@@ -92,7 +94,6 @@ function PureChatInput({
     )
       return;
   
-    // Check if user has API key for the selected model before proceeding
     if (!hasApiKeyForCurrentModel()) {
       setPendingInput(currentInput.trim());
       setShowAPIKeyDialog(true);
@@ -101,20 +102,8 @@ function PureChatInput({
   
     const messageId = uuidv4();
   
-    // Only call complete if there's actual text input
-    if (currentInput.trim()) {
-      if (!id) {
-        router.push(`/chat/${threadId}`);
-        complete(currentInput.trim(), {
-          body: { threadId, messageId, isTitle: true },
-        });
-      } else {
-        complete(currentInput.trim(), { body: { messageId, threadId } });
-      }
-    }
-  
+    // Send the message first
     const userMessage = createUserMessage(messageId, currentInput.trim());
-    // Add attachments to the message
     if (attachments.length > 0) {
       (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
     }
@@ -123,6 +112,38 @@ function PureChatInput({
     setInput('');
     setAttachments([]);
     adjustHeight(true);
+
+    // Navigate to chat page for new chats
+    if (!id) {
+      router.push(`/chat/${threadId}`);
+    }
+    
+    // Generate title ONLY for new chats (first message)
+    if (isNewChat && currentInput.trim()) {
+      console.log('🎯 ChatInput: Starting title generation for new chat', { isNewChat, threadId, currentInput: currentInput.trim() });
+      setTimeout(async () => {
+        try {
+          console.log('📝 ChatInput: Calling complete for title generation');
+          // Fix: Use correct parameters for complete function
+          const generatedTitle = await complete(currentInput.trim(), {
+            body: {
+              threadId,
+              isTitle: true,
+            }
+          });
+          console.log('✅ ChatInput: Generated title:', generatedTitle);
+          if (generatedTitle) {
+            console.log('💾 ChatInput: Saving title to database');
+            await saveChatTitle(generatedTitle);
+            console.log('✅ ChatInput: Title saved successfully');
+          } else {
+            console.warn('⚠️ ChatInput: No title generated');
+          }
+        } catch (error) {
+          console.error('❌ ChatInput: Failed to generate or save title:', error);
+        }
+      }, 500); // Small delay to ensure message is processed
+    }
   }, [
     input,
     status,
@@ -136,38 +157,61 @@ function PureChatInput({
     router,
     hasApiKeyForCurrentModel,
     attachments,
+    saveChatTitle,
+    isNewChat,
+    selectedModel,
   ]);
 
-  const handleAPIKeySuccess = useCallback(() => {
+  const handleAPIKeySuccess = useCallback(async () => {
     if (!pendingInput.trim() && attachments.length === 0) return;
   
     const messageId = uuidv4();
   
-    // Only call complete if there's actual text input
-    if (pendingInput.trim()) {
-      if (!id) {
-        router.push(`/chat/${threadId}`);
-        complete(pendingInput, {
-          body: { threadId, messageId, isTitle: true },
-        });
-      } else {
-        complete(pendingInput, { body: { messageId, threadId } });
-      }
-    }
-  
+    // Send the message first
     const userMessage = createUserMessage(messageId, pendingInput);
-    // Add attachments to the message if there are any
     if (attachments.length > 0) {
       (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
     }
     
     append(userMessage);
     setInput('');
-    setPendingInput(''); // Clear the pending input
+    setPendingInput('');
     setAttachments([]);
     adjustHeight(true);
     setShowAPIKeyDialog(false);
-  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight, attachments]);
+
+    // Navigate to chat page for new chats
+    if (!id) {
+      router.push(`/chat/${threadId}`);
+    }
+    
+    // Generate title ONLY for new chats (first message)
+    if (isNewChat && pendingInput.trim()) {
+      console.log('🎯 ChatInput handleAPIKeySuccess: Starting title generation for new chat');
+      setTimeout(async () => {
+        try {
+          console.log('📝 ChatInput handleAPIKeySuccess: Calling complete for title generation');
+          // Fix: Use correct parameters for complete function
+          const generatedTitle = await complete(pendingInput.trim(), {
+            body: {
+              threadId,
+              isTitle: true,
+            }
+          });
+          console.log('✅ ChatInput handleAPIKeySuccess: Generated title:', generatedTitle);
+          if (generatedTitle) {
+            console.log('💾 ChatInput handleAPIKeySuccess: Saving title to database');
+            await saveChatTitle(generatedTitle);
+            console.log('✅ ChatInput handleAPIKeySuccess: Title saved successfully');
+          } else {
+            console.warn('⚠️ ChatInput handleAPIKeySuccess: No title generated');
+          }
+        } catch (error) {
+          console.error('❌ ChatInput handleAPIKeySuccess: Failed to generate or save title:', error);
+        }
+      }, 500); // Small delay to ensure message is processed
+    }
+  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight, attachments, saveChatTitle, isNewChat, selectedModel]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -271,11 +315,11 @@ const ChatInput = memo(PureChatInput, (prevProps, nextProps) => {
   return true;
 });
 
-
 function PureStopButton({ stop }: StopButtonProps) {
   return (
     <Button
-      variant="outline"
+    className="h-10 w-10 rounded-lg bg-fuchsia-950/70 hover:bg-fuchsia-900 transition-all duration-200"
+
       size="icon"
       onClick={stop}
       aria-label="Stop generating response"
@@ -291,7 +335,7 @@ const PureSendButton = ({ onSubmit, disabled }: SendButtonProps) => {
   return (
     <Button
       onClick={onSubmit}
-      variant="default"
+      className="h-10 w-10 rounded-lg bg-fuchsia-950/80 hover:bg-fuchsia-950 transition-all duration-200"
       size="icon"
       disabled={disabled}
       aria-label="Send message"

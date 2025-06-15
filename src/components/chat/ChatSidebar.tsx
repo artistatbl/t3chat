@@ -29,6 +29,7 @@ import { ChatItem, useGroupedChats } from '@/utils/chatGrouping';
 import { usePinnedChats } from '@/utils/pinnedChats';
 // Import the useSidebarState hook
 import { useSidebarState } from '@/hooks/useSidebarState';
+import { toast } from 'sonner';
 
 // Remove the getCookie function as it's now in the hook
 
@@ -45,7 +46,11 @@ export default function ChatSidebar() {
   // Only destructure what we actually use to avoid the TypeScript warning
   const { isOpen } = useSidebarState();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  
   const togglePinned = useMutation(api.chats.toggleChatPinned);
+  const updateChatTitle = useMutation(api.chats.updateChatTitle);
   
   // Use the extracted grouping logic
   const { pinned, unpinned } = usePinnedChats(chats);
@@ -58,10 +63,15 @@ export default function ChatSidebar() {
         e.preventDefault();
         router.push('/');
       }
+      // Handle escape key to cancel editing
+      if (e.key === 'Escape' && editingChatId) {
+        setEditingChatId(null);
+        setEditingTitle('');
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
+  }, [router, editingChatId]);
 
   const handleOpenCommandPalette = () => {
     setCommandPaletteOpen(true);
@@ -75,6 +85,48 @@ export default function ChatSidebar() {
     }
   };
 
+  const handleDoubleClick = (e: React.MouseEvent, chat: ChatItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingChatId(chat.uuid);
+    setEditingTitle(chat.title || 'New Chat');
+  };
+
+  const handleTitleSubmit = async (chatUuid: string) => {
+    if (!editingTitle.trim()) {
+      setEditingChatId(null);
+      setEditingTitle('');
+      return;
+    }
+
+    const trimmedTitle = editingTitle.trim();
+    
+    try {
+      await updateChatTitle({
+        uuid: chatUuid,
+        title: trimmedTitle,
+      });
+      toast.success('Chat title updated successfully');
+    } catch (error) {
+      console.error('Failed to update chat title:', error);
+      toast.error('Failed to update chat title');
+    } finally {
+      setEditingChatId(null);
+      setEditingTitle('');
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent, chatUuid: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTitleSubmit(chatUuid);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setEditingChatId(null);
+      setEditingTitle('');
+    }
+  };
+
   // Render a chat item
   const renderChatItem = (chat: ChatItem) => (
     <SidebarMenuItem key={chat.uuid} className="group">
@@ -84,14 +136,28 @@ export default function ChatSidebar() {
           threadId === chat.uuid && 'bg-secondary'
         )}
         onClick={() => {
-          if (threadId === chat.uuid) {
+          if (threadId === chat.uuid || editingChatId === chat.uuid) {
             return;
           }
           router.push(`/chat/${chat.uuid}`);
         }}
+        onDoubleClick={(e) => handleDoubleClick(e, chat)}
       >
-        <span className="truncate block">{chat.title || 'New Chat'}</span>
-        {user && (
+        {editingChatId === chat.uuid ? (
+          <input
+            type="text"
+            value={editingTitle}
+            onChange={(e) => setEditingTitle(e.target.value)}
+            onBlur={() => handleTitleSubmit(chat.uuid)}
+            onKeyDown={(e) => handleTitleKeyDown(e, chat.uuid)}
+            className="bg-transparent border-none outline-none text-sm w-full truncate"
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className="truncate block">{chat.title || 'New Chat'}</span>
+        )}
+        {user && editingChatId !== chat.uuid && (
           <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto flex items-center">
             <button
               onClick={(e) => handleTogglePinned(e, chat)}

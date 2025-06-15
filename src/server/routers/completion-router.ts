@@ -37,6 +37,8 @@ export const completionRouter = j.router({
     .mutation(async ({ c, input }) => {
       try {
         const { prompt, model, isTitle } = input;
+        console.log('🔧 Server: Completion request received', { isTitle, model, promptLength: prompt.length });
+        
         const headersList = c.req.raw.headers;
 
         // Get model configuration
@@ -45,6 +47,7 @@ export const completionRouter = j.router({
         // Validate API key
         const apiKey = headersList.get(modelConfig.headerKey) as string;
         if (!apiKey?.trim()) {
+          console.error('❌ Server: Missing API key for', modelConfig.headerKey);
           return c.json(
             { error: `${modelConfig.headerKey} header is required` },
             401
@@ -60,16 +63,24 @@ export const completionRouter = j.router({
 
         // Generate appropriate system prompt based on task
         const systemPrompt = isTitle 
-          ? "Generate a concise, descriptive title (max 6 words) for this conversation based on the user's message. Return only the title, no quotes or extra text."
+          ? "You are a title generator. Generate ONLY a short, descriptive title (maximum 6 words) for this conversation. Do not include quotes, explanations, or any other text. Just return the title."
           : "You are a helpful AI assistant. Provide a clear, concise response to the user's message.";
 
-        // Create a message object for the prompt with the correct type
-        const messages = [
+        // Create messages with more explicit instructions for title generation
+        const messages = isTitle ? [
+          {
+            role: "user" as const,
+            content: `Generate a short title (max 6 words) for a conversation that starts with: "${prompt}"`
+          }
+        ] : [
           {
             role: "user" as const,
             content: prompt
           }
         ];
+
+        console.log('🎯 Server: Using system prompt for', isTitle ? 'TITLE' : 'CHAT', ':', systemPrompt);
+        console.log('📝 Server: Messages:', messages);
 
         // Use the streamTextWithConversion function to handle the conversion
         const result = await new Promise<{ text: string }>((resolve, reject) => {
@@ -77,26 +88,29 @@ export const completionRouter = j.router({
             model: aiModel,
             messages,
             system: systemPrompt,
-            maxTokens: isTitle ? 20 : 1000,
-            temperature: isTitle ? 0.3 : 0.7,
+            maxTokens: isTitle ? 15 : 1000,  // Reduced for titles
+            temperature: isTitle ? 0.1 : 0.7,  // Lower temperature for more consistent titles
             onFinish: (result) => {
-              resolve({ text: result.text });
+              console.log('✅ Server: Completion finished', { isTitle, text: result.text });
+              // Clean up the title if it contains quotes or extra text
+              const cleanedText = isTitle ? result.text.replace(/["']/g, '').trim() : result.text;
+              resolve({ text: cleanedText });
             },
             onError: (error) => {
+              console.error('❌ Server: Completion error', { isTitle, error });
               reject(error);
             }
           });
           
-          // Return the stream to prevent it from being garbage collected
           return stream;
         });
 
+        console.log('📤 Server: Returning result', { isTitle, text: result.text });
         return c.json({
           text: result.text,
-          // Note: usage and finishReason might not be available with this approach
         });
       } catch (error) {
-        console.error("Completion failed:", error);
+        console.error('❌ Server: Completion failed:', error);
         return c.json(
           { error: "Failed to generate completion" },
           500

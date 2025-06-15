@@ -21,7 +21,7 @@ export const createChat = mutation({
     return await ctx.db.insert("chats", {
       uuid: args.uuid,
       userId: args.userId,
-      title: args.title,
+      title: args.title || "New Chat", // Provide default title
       createdAt: now,
       updatedAt: now,
     });
@@ -34,20 +34,27 @@ export const updateChatTitle = mutation({
     title: v.string(),
   },
   handler: async (ctx, args) => {
+    console.log("[updateChatTitle] Received:", { uuid: args.uuid, title: args.title });
+    
     const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
       .first();
 
     if (!chat) {
+      console.log("[updateChatTitle] Chat not found for uuid:", args.uuid);
       throw new Error("Chat not found");
     }
 
+    console.log("[updateChatTitle] Found chat:", chat);
+    
     await ctx.db.patch(chat._id, {
       title: args.title,
       updatedAt: Date.now(),
     });
-
+    
+    console.log("[updateChatTitle] Updated chat with title:", args.title);
+    
     return chat;
   },
 });

@@ -22,15 +22,43 @@ export function useConvexChat(threadId: string) {
     threadId ? { chatId: threadId } : "skip"
   );
 
-  const saveUserMessage = async (message: UIMessage) => {
+  const saveUserMessage = async (message: UIMessage, shouldGenerateTitle = false) => {
     if (!user || !threadId) return;
-
+  
     try {
-      // Ensure chat exists
-      await createChat({
-        uuid: threadId,
-        userId: user.id,
-      });
+      // Check if chat already exists using the query result
+      if (!getChat) {
+        // Chat doesn't exist, create it
+        if (shouldGenerateTitle) {
+          try {
+            // Generate a simple title from the message content
+            const words = message.content.trim().split(' ').slice(0, 6);
+            const generatedTitle = words.join(' ') + (message.content.split(' ').length > 6 ? '...' : '');
+            
+            // Create chat with generated title
+            await createChat({
+              uuid: threadId,
+              userId: user.id,
+              title: generatedTitle || "New Chat",
+            });
+          } catch (titleError) {
+            console.warn("Failed to generate title, using default:", titleError);
+            // Fallback to creating chat with default title
+            await createChat({
+              uuid: threadId,
+              userId: user.id,
+              title: "New Chat",
+            });
+          }
+        } else {
+          // Create chat with default title
+          await createChat({
+            uuid: threadId,
+            userId: user.id,
+            title: "New Chat",
+          });
+        }
+      }
 
       // Check for attachments
       const attachments = (message as unknown as { attachments?: { name: string; url: string; type: string }[] }).attachments;
@@ -53,7 +81,6 @@ export function useConvexChat(threadId: string) {
     if (!user || !threadId) return;
 
     try {
-      // Save assistant message
       await createMessage({
         uuid: message.id,
         chatId: threadId,
@@ -70,20 +97,39 @@ export function useConvexChat(threadId: string) {
     if (!user || !threadId) return;
 
     try {
-      await updateChatTitle({
+      console.log("[saveChatTitle] Attempting to save title:", { threadId, title });
+      const result = await updateChatTitle({
         uuid: threadId,
-        title,
+        title: title,
       });
+      console.log("[saveChatTitle] Successfully updated title:", result);
     } catch (error) {
       console.error("Failed to save chat title:", error);
     }
   };
 
+  const createChatWithTitle = async (title: string) => {
+    if (!user || !threadId) return;
+  
+    try {
+      console.log("[createChatWithTitle] Creating chat with title:", { uuid: threadId, title });
+      await createChat({
+        uuid: threadId,
+        userId: user.id,
+        title: title,
+      });
+      console.log("[createChatWithTitle] Successfully created chat with title");
+    } catch (error) {
+      console.error("Failed to create chat with title:", error);
+    }
+  };
+  
   return {
     saveUserMessage,
     saveAssistantMessage,
     saveChatTitle,
+    createChatWithTitle,
     chat: getChat,
-    messages: getMessages, // Add this line
+    messages: getMessages,
   };
 }

@@ -12,7 +12,7 @@ export default defineSchema({
   chats: defineTable({
     uuid: v.string(),
     userId: v.string(),
-    title: v.optional(v.string()),
+    title: v.string(), // Remove v.optional() to make it required
     pinned: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
