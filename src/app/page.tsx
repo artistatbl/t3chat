@@ -2,16 +2,20 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import Chat from '@/components/chat/Chat';
-import { useRouter } from 'next/navigation'; // Switch back to Next.js router
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, useRef } from 'react';
 
 export default function Page() {
-  const router = useRouter(); // Use Next.js router
+  const router = useRouter();
   const [threadId] = useState(uuidv4());
+  const hasRedirected = useRef(false);
   
-  // Function to handle when user starts a chat
   const handleStartChat = () => {
-    router.push(`/chat/${threadId}`); // Use Next.js navigation
+    // This will be called after the AI response is complete
+    if (!hasRedirected.current) {
+      hasRedirected.current = true;
+      router.replace(`/chat/${threadId}`);
+    }
   };
   
   return (
