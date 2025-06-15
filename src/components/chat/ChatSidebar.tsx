@@ -59,7 +59,7 @@ export default function ChatSidebar() {
   // Add keyboard shortcut for new chat
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'o') {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         router.push('/');
       }
@@ -296,8 +296,7 @@ function PureHeader() {
         T3Chat
       </h1>
       <Button
-        variant="default"
-        className="w-full bg-fuchsia-950/40 text-white hover:bg-fuchsia-950/20"
+        className="w-full  bg-fuchsia-950/80  text-white hover:bg-fuchsia-950/20"
         onClick={() => router.push('/')}
       >
         New Chat

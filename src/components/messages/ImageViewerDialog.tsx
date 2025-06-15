@@ -16,8 +16,8 @@ export default function ImageViewerDialog({
   imageName,
 }: ImageViewerDialogProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>      
+      <DialogContent className="max-w-4xl dark:bg-zinc-800/80 bg-zinc-100 overflow-hidden p-4 border-2  ring-2 ring-white/50 rounded-xl">
         <VisuallyHidden>
           <DialogTitle>{`Image: ${imageName}`}</DialogTitle>
         </VisuallyHidden>
@@ -26,7 +26,7 @@ export default function ImageViewerDialog({
             src={imageUrl}
             alt={imageName}
             fill
-            className="object-contain"
+            className="object-contain rounded-lg"
             sizes="(max-width: 768px) 100vw, 80vw"
             priority
           />

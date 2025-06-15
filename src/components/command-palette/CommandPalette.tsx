@@ -32,6 +32,7 @@ export function CommandPalette({ open: externalOpen, onOpenChange: externalOnOpe
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = (value: boolean) => {
     setInternalOpen(value);
+
     externalOnOpenChange?.(value);
   };
 

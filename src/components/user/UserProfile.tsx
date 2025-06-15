@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { ArrowRightToLine } from 'lucide-react';
+
 import { useUser } from '@clerk/nextjs';
 
 export default function UserProfile() {
@@ -27,19 +29,12 @@ export default function UserProfile() {
       <Link href="/sign-in" className="block">
         <Button
           variant="ghost"
-          className="w-full h-auto p-3 flex items-center gap-3 hover:bg-secondary transition-colors"
+          className="w-full h-auto p-4 flex items-center gap-3 hover:bg-secondary transition-colors"
         >
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-              G
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 text-left min-w-0">
+          <div className="flex-1 text-left min-w-0 flex items-center gap-2">
+            <ArrowRightToLine className='h-4 w-4'/>
             <p className="text-sm font-medium truncate">
-              Sign in
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              Get started with T3Chat
+              Login
             </p>
           </div>
         </Button>
@@ -73,9 +68,9 @@ export default function UserProfile() {
           <p className="text-sm font-medium truncate">
             {displayName}
           </p>
-          <p className="text-xs text-muted-foreground truncate">
+          {/* <p className="text-xs text-muted-foreground truncate">
             No plan 
-          </p>
+          </p> */}
         </div>
       </Button>
     </Link>

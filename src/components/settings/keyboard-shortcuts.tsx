@@ -10,22 +10,26 @@ export function KeyboardShortcuts() {
   ];
 
   return (
-    <div className="bg-zinc-900 text-white rounded-lg p-4 mb-8">
-      <h3 className="text-sm font-medium mb-3">Keyboard Shortcuts</h3>
+    <div className="space-y-4">
+
       
-      {shortcuts.map((shortcut, index) => (
-        <div key={index} className="flex justify-between items-center mb-2 text-sm">
-          <span>{shortcut.action}</span>
-          <div className="flex items-center">
-            {shortcut.keys.map((key, keyIndex) => (
-              <React.Fragment key={keyIndex}>
-                {keyIndex > 0 && <span className="mx-1">+</span>}
-                <span className="bg-zinc-800 px-2 py-0.5 rounded text-xs">{key}</span>
-              </React.Fragment>
-            ))}
+      <div className="space-y-3">
+        {shortcuts.map((shortcut, index) => (
+          <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+            <span className="text-sm font-medium">{shortcut.action}</span>
+            <div className="flex items-center gap-1">
+              {shortcut.keys.map((key, keyIndex) => (
+                <React.Fragment key={keyIndex}>
+                  {keyIndex > 0 && <span className="text-xs text-muted-foreground mx-1">+</span>}
+                  <kbd className="bg-background border border-border px-2 py-1 rounded text-xs font-mono shadow-sm">
+                    {key}
+                  </kbd>
+                </React.Fragment>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

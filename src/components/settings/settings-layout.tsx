@@ -28,6 +28,7 @@ const SETTINGS_TABS: SettingsTab[] = [
   { value: 'appearance', label: 'Appearance', href: '/settings/appearance' },
   { value: 'models', label: 'Models', href: '/settings/models' },
   { value: 'apikey', label: 'API Keys', href: '/settings/apikey' },
+
 ];
 
 // Components
@@ -77,7 +78,7 @@ const Sidebar = () => (
 
 const SettingsTabs = ({ activeTab }: { activeTab: string }) => (
   <Tabs value={activeTab} className="mb-8">
-    <TabsList className="w-full bg-background p-1 rounded-lg flex justify-start">
+    <TabsList className="dark:bg-zinc-800  bg-zinc-100 p-1 rounded-lg flex justify-start">
       {SETTINGS_TABS.map((tab) => (
         <Link key={tab.value} href={tab.href} prefetch>
           <TabsTrigger 
