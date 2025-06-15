@@ -122,4 +122,4 @@ To run "T3chat" Clone locally, you'll need to follow these steps:
 
 ## 🐛 Issues & Support
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/artistatbl/t3chatissues) on GitHub.
+If you encounter any issues or have questions, please [open an issue](https://github.com/artistatbl/t3chat/issues) on GitHub.
