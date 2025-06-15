@@ -32,7 +32,6 @@ export function CommandPalette({ open: externalOpen, onOpenChange: externalOnOpe
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = (value: boolean) => {
     setInternalOpen(value);
-
     externalOnOpenChange?.(value);
   };
 
@@ -51,37 +50,31 @@ export function CommandPalette({ open: externalOpen, onOpenChange: externalOnOpe
     setOpen(false)
     command()
   }
-  const isLoading = chats === undefined
+
 
   return (
     <CommandDialog 
       open={open} 
       onOpenChange={setOpen} 
-      className="mx-auto max-w-xl rounded-xl border bg-popover/95 backdrop-blur-xl shadow-2xl"
+      className="w-full max-w-md border-2 border-fuchsia-950/50 dark:border-fuchsia-950/20"
     >
-      {/* Header with search */}
-      <div className="border-b">
-        <CommandInput 
-          placeholder="Search chats or type a command..." 
-          className="w-full border-0 bg-transparent px-4 py-3 text-sm placeholder:text-muted-foreground focus:ring-0" 
-        />
-      </div>
 
-     
+      <CommandInput 
+        placeholder="Search chats or type a command..." 
+      />
+
       <CommandList className="max-h-96 overflow-y-auto p-2">
         <CommandEmpty className="flex flex-col items-center justify-center py-12 text-center">
           <div className="mb-3 rounded-full bg-muted p-3">
             <MessageSquareMore className="h-6 w-6 text-muted-foreground" />
           </div>
           <p className="text-sm font-medium text-foreground">
-            {isLoading ? "Loading chats..." : "No chats found"}
+            {chats && chats.length > 0 ? "" : "No chats found"}
           </p>
           <p className="text-xs text-muted-foreground">
-            {isLoading ? "Please wait" : "Start a new conversation to get started"}
+            {chats && chats.length > 0 ? "" : "Start a new conversation to get started"}
           </p>
         </CommandEmpty>
-        
-    
 
         {chats && chats.length > 0 && (
           <>
@@ -90,7 +83,7 @@ export function CommandPalette({ open: externalOpen, onOpenChange: externalOnOpe
                 <CommandItem
                   key={chat.uuid}
                   onSelect={() => runCommand(() => router.push(`/chat/${chat.uuid}`))}
-                  className="group flex items-center gap-3 rounded-lg px-1 py-2 text-sm transition-all hover:bg-accent"
+                  className="group flex items-center g cursor-pointer p-3 rounded-lg px-1 py-2 text-sm transition-all hover:bg-accent"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-foreground truncate">
