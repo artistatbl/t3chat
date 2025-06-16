@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 import { Button } from '../ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Check, Copy, RefreshCcw, SquarePen, GitBranch } from 'lucide-react';
 import { UIMessage } from 'ai';
@@ -80,27 +81,57 @@ export default function MessageControls({
         }
       )}
     >
-      <Button variant="ghost" size="icon" onClick={handleCopy}>
-        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={handleCopy}>
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {copied ? 'Copied!' : 'Copy message'}
+        </TooltipContent>
+      </Tooltip>
+      
       {message.role === 'user' && setMode && (
-        <Button variant="ghost" size="icon" onClick={() => setMode('edit')}>
-          <SquarePen className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={() => setMode('edit')}>
+              <SquarePen className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Edit message
+          </TooltipContent>
+        </Tooltip>
       )}
+      
       {onBranch && message.role === 'assistant' && (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleBranch}
-          title="Create branch from this message"
-        >
-          <GitBranch className="w-4 h-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleBranch}
+            >
+              <GitBranch className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            Create branch from this message
+          </TooltipContent>
+        </Tooltip>
       )}
-      <Button variant="ghost" size="icon" onClick={handleRegenerate}>
-        <RefreshCcw className="w-4 h-4" />
-      </Button>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" onClick={handleRegenerate}>
+            <RefreshCcw className="w-4 h-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Regenerate response
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
