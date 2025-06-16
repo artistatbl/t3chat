@@ -18,6 +18,7 @@ import { useMessageSummary } from '@/app/hooks/useMessageSummary';
 import { ChatModelDropdown } from './ModelSelector';
 import FileUploader from './FileUploader';
 import AttachmentChip from './AttachmentChip';
+import { generateAndSaveTitle } from '@/utils/titleGenerator'; // Add this import
 
 interface ChatInputProps {
   threadId: string;
@@ -84,6 +85,9 @@ function PureChatInput({
     return !!apiKey;
   }, [getKey, selectedModel]);
 
+  // Add this import at the top of the file
+  
+  // Then modify the handleSubmit function
   const handleSubmit = useCallback(async () => {
     const currentInput = textareaRef.current?.value || input;
   
@@ -108,41 +112,40 @@ function PureChatInput({
       (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
     }
     
+    // Start title generation in parallel but don't await it
+    if (isNewChat && currentInput.trim()) {
+      console.log('%c 🚀 STARTING TITLE GENERATION FOR NEW CHAT', 'background: #FF9800; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+      // Use Promise.resolve to run this in parallel without blocking
+      Promise.resolve().then(async () => {
+        try {
+          const modelConfig = getModelConfig(selectedModel);
+          const apiKey = getKey(modelConfig.provider);
+          if (apiKey) {
+            await generateAndSaveTitle(
+              threadId,
+              currentInput.trim(),
+              apiKey,
+              modelConfig,
+              saveChatTitle,
+              selectedModel
+            );
+            console.log('%c 🏁 TITLE GENERATION PROCESS COMPLETED', 'background: #9C27B0; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+          }
+        } catch (error) {
+          console.error('%c ❌ TITLE GENERATION FAILED: ' + error, 'background: #F44336; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+        }
+      });
+    }
+    
+    // Continue with message sending immediately
     append(userMessage);
     setInput('');
     setAttachments([]);
     adjustHeight(true);
-
+  
     // Navigate to chat page for new chats
     if (!id) {
       router.push(`/chat/${threadId}`);
-    }
-    
-    // Generate title ONLY for new chats (first message)
-    if (isNewChat && currentInput.trim()) {
-      console.log('🎯 ChatInput: Starting title generation for new chat', { isNewChat, threadId, currentInput: currentInput.trim() });
-      setTimeout(async () => {
-        try {
-          console.log('📝 ChatInput: Calling complete for title generation');
-          // Fix: Use correct parameters for complete function
-          const generatedTitle = await complete(currentInput.trim(), {
-            body: {
-              threadId,
-              isTitle: true,
-            }
-          });
-          console.log('✅ ChatInput: Generated title:', generatedTitle);
-          if (generatedTitle) {
-            console.log('💾 ChatInput: Saving title to database');
-            await saveChatTitle(generatedTitle);
-            console.log('✅ ChatInput: Title saved successfully');
-          } else {
-            console.warn('⚠️ ChatInput: No title generated');
-          }
-        } catch (error) {
-          console.error('❌ ChatInput: Failed to generate or save title:', error);
-        }
-      }, 500); // Small delay to ensure message is processed
     }
   }, [
     input,

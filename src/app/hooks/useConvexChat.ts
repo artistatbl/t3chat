@@ -95,14 +95,30 @@ export function useConvexChat(threadId: string) {
 
   const saveChatTitle = async (title: string) => {
     if (!user || !threadId) return;
-
+  
     try {
       console.log("[saveChatTitle] Attempting to save title:", { threadId, title });
-      const result = await updateChatTitle({
-        uuid: threadId,
-        title: title,
-      });
-      console.log("[saveChatTitle] Successfully updated title:", result);
+      
+      // Check if chat exists first
+      const existingChat = getChat;
+      
+      if (!existingChat) {
+        // Chat doesn't exist, create it with the title
+        console.log("[saveChatTitle] Chat doesn't exist, creating with title:", title);
+        await createChat({
+          uuid: threadId,
+          userId: user.id,
+          title: title,
+        });
+      } else {
+        // Chat exists, update the title
+        console.log("[saveChatTitle] Chat exists, updating title from", existingChat.title, "to", title);
+        const result = await updateChatTitle({
+          uuid: threadId,
+          title: title,
+        });
+        console.log("[saveChatTitle] Successfully updated title:", result);
+      }
     } catch (error) {
       console.error("Failed to save chat title:", error);
     }

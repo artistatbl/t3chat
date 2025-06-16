@@ -11,8 +11,8 @@ export default function Page() {
   
   // Preserve payment success parameters if they exist
   const redirectUrl = paymentSuccess === "success" && sessionId
-    ? `/welcome-back?redirect=/dashboard&payment=success&session_id=${sessionId}`
-    : "/welcome-back"
+    ? `/welcome?redirect=/dashboard&payment=success&session_id=${sessionId}`
+    : "/welcome"
 
   return (
     <main className="h-screen w-screen flex items-center bg-[#191317]  justify-center p-6">

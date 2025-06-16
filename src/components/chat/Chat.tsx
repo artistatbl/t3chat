@@ -128,12 +128,12 @@ export default function Chat({
   // Fixed initialization logic - only load once and prevent duplicates
   // In the useEffect where messages are loaded from Convex
   useEffect(() => {
-    console.log("🔄 Chat initialization effect:", {
-      threadId,
-      convexMessages: convexMessages?.length || 0,
-      initialMessages: initialMessages.length,
-      isInitialized,
-    });
+    // console.log("🔄 Chat initialization effect:", {
+    //   threadId,
+    //   convexMessages: convexMessages?.length || 0,
+    //   initialMessages: initialMessages.length,
+    //   isInitialized,
+    // });
 
     // Only initialize once when convex messages are loaded
     if (convexMessages !== undefined && !isInitialized) {
@@ -165,14 +165,14 @@ export default function Chat({
 
             return message;
           });
-        console.log("✅ Loading messages from Convex:", uiMessages.length);
+        // console.log("✅ Loading messages from Convex:", uiMessages.length);
         setMessages(uiMessages);
       } else {
         // No messages in database, use initial messages
-        console.log(
-          "📝 No messages in DB, using initial messages:",
-          initialMessages.length
-        );
+        // console.log(
+        //   "📝 No messages in DB, using initial messages:",
+        //   initialMessages.length
+        // );
         setMessages(initialMessages);
       }
       setIsInitialized(true);
@@ -352,22 +352,22 @@ export default function Chat({
           const { done, value } = await reader.read();
 
           if (done) {
-            console.log(
-              "✅ Stream done, final content length:",
-              accumulatedContent.length
-            );
+            // console.log(
+            //   "✅ Stream done, final content length:",
+            //   accumulatedContent.length
+            // );
             break;
           }
           if (controller.signal.aborted) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          console.log("📦 Raw chunk received:", chunk);
+          // console.log("📦 Raw chunk received:", chunk);
 
           const lines = chunk.split("\n");
-          console.log("📄 Lines in chunk:", lines);
+          // console.log("📄 Lines in chunk:", lines);
 
           for (const line of lines) {
-            console.log("🔍 Processing line:", line);
+            // console.log("🔍 Processing line:", line);
 
             // Handle AI SDK streaming format
             if (line.startsWith("0:")) {
@@ -377,8 +377,8 @@ export default function Chat({
                 const parsedContent = JSON.parse(textContent); // Parse the quoted string
 
                 accumulatedContent += parsedContent;
-                console.log("✨ SUCCESS: Added text content:", parsedContent);
-                console.log("📚 Total accumulated:", accumulatedContent);
+                // console.log("✨ SUCCESS: Added text content:", parsedContent);
+                // console.log("📚 Total accumulated:", accumulatedContent);
 
                 // Update the assistant message
                 setMessages((prev) => {
@@ -393,10 +393,10 @@ export default function Chat({
                       content: accumulatedContent,
                       parts: [{ type: "text", text: accumulatedContent }],
                     };
-                    console.log(
-                      "🔄 Updated assistant message:",
-                      newMessages[lastIndex]
-                    );
+                    // console.log(
+                    //   "🔄 Updated assistant message:",
+                    //   newMessages[lastIndex]
+                    // );
                   } else {
                     console.warn(
                       "⚠️ Last message is not assistant:",
@@ -410,16 +410,16 @@ export default function Chat({
               }
             } else if (line.startsWith("e:")) {
               // End/finish data: e:{"finishReason":"stop",...}
-              console.log("🏁 Received finish signal:", line);
+              // console.log("🏁 Received finish signal:", line);
             } else if (line.startsWith("d:")) {
               // Done data: d:{"finishReason":"stop",...}
-              console.log("✅ Received done signal:", line);
+              // console.log("✅ Received done signal:", line);
               break; // Exit the loop when done
             } else if (line.trim() === "") {
               // Empty line, skip
               continue;
             } else {
-              console.log("⏭️ Unknown line format:", line);
+              // console.log("⏭️ Unknown line format:", line);
             }
           }
         }
@@ -481,20 +481,20 @@ export default function Chat({
   }, [abortController]);
 
   const reload = useCallback(() => {
-    console.log("🔄 Chat: Reload function called");
-    console.log("📊 Chat: Current messages state:", {
-      totalMessages: messages.length,
-      messageIds: messages.map((m) => ({ id: m.id, role: m.role })),
-    });
+    // console.log("🔄 Chat: Reload function called");
+    // console.log("📊 Chat: Current messages state:", {
+    //   totalMessages: messages.length,
+    //   messageIds: messages.map((m) => ({ id: m.id, role: m.role })),
+    // });
 
     if (messages.length > 0) {
       const lastUserMessage = [...messages]
         .reverse()
         .find((m) => m.role === "user");
-      console.log("👤 Chat: Found last user message:", {
-        messageId: lastUserMessage?.id,
-        content: lastUserMessage?.content?.substring(0, 50) + "...",
-      });
+      // console.log("👤 Chat: Found last user message:", {
+      //   messageId: lastUserMessage?.id,
+      //   content: lastUserMessage?.content?.substring(0, 50) + "...",
+      // });
 
       if (lastUserMessage) {
         // Remove the last assistant message if it exists
@@ -505,14 +505,14 @@ export default function Chat({
           return !isLastAssistant;
         });
 
-        console.log("🗑️ Chat: Filtered messages for reload:", {
-          originalCount: messages.length,
-          filteredCount: newMessages.length,
-          removedLastAssistant: messages.length !== newMessages.length,
-        });
+        // console.log("🗑️ Chat: Filtered messages for reload:", {
+        //   originalCount: messages.length,
+        //   filteredCount: newMessages.length,
+        //   removedLastAssistant: messages.length !== newMessages.length,
+        // });
 
         setMessages(newMessages);
-        console.log("📤 Chat: Calling append with last user message");
+        // console.log("📤 Chat: Calling append with last user message");
         append(lastUserMessage);
       }
     }

@@ -16,7 +16,7 @@ export const authRouter = j.router({
       return c.json({ isSynced: false })
     }
 
-    const user = await convex.query(api.users.getUserByClerkId, {
+    const user = await convex.query(api.users.getUser, {
       clerkId: auth.id,
     })
 

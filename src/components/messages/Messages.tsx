@@ -58,12 +58,12 @@ function PureMessages({
   return (
     <section className="flex flex-col space-y-12">
       {messages.map((message, index) => {
-        console.log(`🎭 Rendering message ${index}:`, {
-          id: message.id,
-          role: message.role,
-          content: message.content?.substring(0, 50) + '...',
-          partsCount: message.parts?.length
-        });
+        // console.log(`🎭 Rendering message ${index}:`, {
+        //   id: message.id,
+        //   role: message.role,
+        //   content: message.content?.substring(0, 50) + '...',
+        //   partsCount: message.parts?.length
+        // });
         
         return (
           <PreviewMessage

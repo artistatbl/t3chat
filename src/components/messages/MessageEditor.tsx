@@ -13,7 +13,7 @@ import { api } from '../../../convex/_generated/api';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function MessageEditor({
-  threadId,
+  //threadId,
   message,
   content,
   setMessages,
@@ -41,33 +41,33 @@ export default function MessageEditor({
   const handleSave = async () => {
     if (isSubmitting) return;
     
-    console.log('💾 MessageEditor: Starting save process:', {
-      originalMessageId: message.id,
-      originalContent: message.content?.substring(0, 50) + '...',
-      newContent: draftContent.substring(0, 50) + '...'
-    });
+    // console.log('💾 MessageEditor: Starting save process:', {
+    //   originalMessageId: message.id,
+    //   originalContent: message.content?.substring(0, 50) + '...',
+    //   newContent: draftContent.substring(0, 50) + '...'
+    // });
     
     setIsSubmitting(true);
 
     try {
       // Update the message content in the local state immediately
-      const updatedMessage = {
-        ...message,
-        content: draftContent,
-        parts: [
-          {
-            type: 'text' as const,
-            text: draftContent,
-          },
-        ],
-      };
+      // const updatedMessage = {
+      //   ...message,
+      //   content: draftContent,
+      //   parts: [
+      //     {
+      //       type: 'text' as const,
+      //       text: draftContent,
+      //     },
+      //   ],
+      // };
 
-      console.log('🔄 MessageEditor: Created updated message:', {
-        originalId: message.id,
-        updatedId: updatedMessage.id,
-        idsMatch: message.id === updatedMessage.id,
-        updatedContent: updatedMessage.content?.substring(0, 50) + '...'
-      });
+      // console.log('🔄 MessageEditor: Created updated message:', {
+      //   originalId: message.id,
+      //   updatedId: updatedMessage.id,
+      //   idsMatch: message.id === updatedMessage.id,
+      //   updatedContent: updatedMessage.content?.substring(0, 50) + '...'
+      // });
 
       // Update messages state - replace the old message and remove any subsequent messages
       // In the handleSave function, ensure the updated message keeps its position
@@ -95,19 +95,19 @@ export default function MessageEditor({
         // Replace the message at the same index, remove subsequent messages
         const newMessages = [...prevMessages.slice(0, index), updatedMessage];
         
-        console.log('✅ MessageEditor: Updated state with preserved order:', {
-          originalIndex: index,
-          newTotalMessages: newMessages.length,
-          preservedCreatedAt: updatedMessage.createdAt
-        });
+        // console.log('✅ MessageEditor: Updated state with preserved order:', {
+        //   originalIndex: index,
+        //   newTotalMessages: newMessages.length,
+        //   preservedCreatedAt: updatedMessage.createdAt
+        // });
         
         return newMessages;
       });
 
-      console.log('🗄️ MessageEditor: Updating message in database:', {
-        messageUuid: message.id,
-        newContent: draftContent.substring(0, 50) + '...'
-      });
+      // console.log('🗄️ MessageEditor: Updating message in database:', {
+      //   messageUuid: message.id,
+      //   newContent: draftContent.substring(0, 50) + '...'
+      // });
 
       // Update the message in the Convex database
       await updateMessage({
@@ -115,11 +115,11 @@ export default function MessageEditor({
         content: draftContent,
       });
 
-      console.log('✅ MessageEditor: Database update completed');
+      // console.log('✅ MessageEditor: Database update completed');
 
       // Stop any ongoing streams
       stop();
-      console.log('🛑 MessageEditor: Stopped ongoing streams');
+      // console.log('🛑 MessageEditor: Stopped ongoing streams');
 
       // Send the update to the server for AI completion
       const apiKey = getKey(modelConfig.provider);
@@ -127,12 +127,12 @@ export default function MessageEditor({
         throw new Error('API key not found');
       }
 
-      console.log('🤖 MessageEditor: Sending to AI completion:', {
-        prompt: draftContent.substring(0, 50) + '...',
-        model: selectedModel,
-        threadId,
-        messageId: message.id
-      });
+      // console.log('🤖 MessageEditor: Sending to AI completion:', {
+      //   prompt: draftContent.substring(0, 50) + '...',
+      //   model: selectedModel,
+      //   threadId,
+      //   messageId: message.id
+      // });
 
       // In the handleSave function, replace the non-streaming completion call:
       // Instead of:
@@ -218,21 +218,21 @@ export default function MessageEditor({
         reader.releaseLock();
       }
 
-      console.log('✅ MessageEditor: AI completion request successful');
+      // console.log('✅ MessageEditor: AI completion request successful');
 
       setMode('view');
-      console.log('👁️ MessageEditor: Switched to view mode');
+      // console.log('👁️ MessageEditor: Switched to view mode');
 
       // DON'T call reload() - this was causing the duplicates!
       // The state is already updated and the AI response will be streamed
-      console.log('🚫 MessageEditor: Skipping reload to prevent duplicates');
+      // console.log('🚫 MessageEditor: Skipping reload to prevent duplicates');
       
     } catch (error) {
-      console.error('❌ MessageEditor: Save failed:', error);
+      // console.error('❌ MessageEditor: Save failed:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to save message');
     } finally {
       setIsSubmitting(false);
-      console.log('🏁 MessageEditor: Save process completed');
+      // console.log('🏁 MessageEditor: Save process completed');
     }
   };
 
