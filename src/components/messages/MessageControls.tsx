@@ -15,7 +15,7 @@ interface MessageControlsProps {
   setMode?: Dispatch<SetStateAction<'view' | 'edit'>>;
   reload: () => void;
   stop: UseChatHelpers['stop'];
-  onBranch?: (messageId: string) => void; // New prop for branching
+  onBranch?: (messageId: string) => void; 
 }
 
 export default function MessageControls({
