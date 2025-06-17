@@ -87,7 +87,7 @@ export default function MessageControls({
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side="bottom">
           {copied ? 'Copied!' : 'Copy message'}
         </TooltipContent>
       </Tooltip>
@@ -99,7 +99,7 @@ export default function MessageControls({
               <SquarePen className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="bottom">
             Edit message
           </TooltipContent>
         </Tooltip>
@@ -116,7 +116,7 @@ export default function MessageControls({
               <GitBranch className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent side="bottom">
             Create branch from this message
           </TooltipContent>
         </Tooltip>
@@ -128,7 +128,7 @@ export default function MessageControls({
             <RefreshCcw className="w-4 h-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
+        <TooltipContent side="bottom">
           Regenerate response
         </TooltipContent>
       </Tooltip>
