@@ -1,7 +1,7 @@
 // app/(auth)/welcome/page.tsx
 "use client"
 
-import { useUserSync } from "@/app/hooks/useSync"
+import { useUserSync } from "@/hooks/useSync"
 import { SyncMessage } from "@/components/auth/sync-message"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"

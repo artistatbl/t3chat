@@ -5,7 +5,7 @@ import { getAvailableModels } from '@/lib/models';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { useIsMobile } from '@/app/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { AIModel } from '@/lib/models';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Cpu } from 'lucide-react';
