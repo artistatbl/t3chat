@@ -4,20 +4,21 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ArrowRightToLine } from 'lucide-react';
-
 import { useUser } from '@clerk/nextjs';
+import { usePrivacySettings } from '@/hooks/usePrivacySettings';
 
 export default function UserProfile() {
   const { user, isLoaded } = useUser();
+  const { hidePersonalInfo } = usePrivacySettings(); // Remove isLoading if not using it
 
   // Show loading state while user data is being fetched
   if (!isLoaded) {
     return (
       <div className="w-full h-auto p-3 flex items-center gap-3">
-        <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
+        <div className="h-8 w-8 bg-muted rounded-full animate-pulse blur-md" />
         <div className="flex-1 text-left min-w-0">
-          <div className="h-4 bg-muted rounded animate-pulse mb-1" />
-          <div className="h-3 bg-muted rounded animate-pulse w-3/4" />
+          <div className="h-4 bg-muted rounded animate-pulse mb-1 blur-md" />
+          <div className="h-3 bg-muted rounded animate-pulse w-3/4 blur-md" />
         </div>
       </div>
     );
@@ -58,14 +59,18 @@ export default function UserProfile() {
         className="w-full h-auto p-3 flex items-center gap-3 hover:bg-secondary transition-colors"
       >
         <Avatar className="h-8 w-8">
-          <AvatarImage src={displayImage} alt={displayName} />
+          <AvatarImage 
+            src={displayImage} 
+            alt={displayName} 
+            className={hidePersonalInfo ? "blur-md" : ""}
+          />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm">
             {initials}
           </AvatarFallback>
         </Avatar>
         
         <div className="flex-1 text-left min-w-0">
-          <p className="text-sm font-medium truncate">
+          <p className={`text-sm font-medium truncate ${hidePersonalInfo ? "blur-md select-none" : ""}`}>
             {displayName}
           </p>
           {/* <p className="text-xs text-muted-foreground truncate">

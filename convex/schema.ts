@@ -9,6 +9,7 @@ export default defineSchema({
     occupation: v.optional(v.string()),
     traits: v.optional(v.array(v.string())),
     bio: v.optional(v.string()),
+    hidePersonalInfo: v.optional(v.boolean()), // Add this field
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_clerk_id", ["clerkId"]),

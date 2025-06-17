@@ -25,7 +25,8 @@ type SettingsTab = {
 // Constants
 const SETTINGS_TABS: SettingsTab[] = [
   { value: 'account', label: 'Account', href: '/settings/account' },
-  { value: 'appearance', label: 'Appearance', href: '/settings/appearance' },
+  { value: 'privacy', label: 'Privacy', href: '/settings/privacy' },
+  // { value: 'appearance', label: 'Appearance', href: '/settings/appearance' },
   { value: 'models', label: 'Models', href: '/settings/models' },
   { value: 'apikey', label: 'API Keys', href: '/settings/apikey' },
 
@@ -55,7 +56,7 @@ const Header = () => {
           onClick={() => signOut(() => router.push('/'))}
           className={buttonVariants({
             variant: 'ghost',
-            className: 'text-sm cursor-pointer transition-all',
+            className: 'text-xs cursor-pointer transition-all',
           })}
         >
           Sign out
@@ -78,12 +79,13 @@ const Sidebar = () => (
 
 const SettingsTabs = ({ activeTab }: { activeTab: string }) => (
   <Tabs value={activeTab} className="mb-8">
-    <TabsList className="dark:bg-zinc-800  bg-zinc-100 p-1 rounded-lg flex justify-start">
+    <TabsList className="dark:bg-zinc-800 bg-zinc-100 space-x-2 rounded-lg flex justify-start">
       {SETTINGS_TABS.map((tab) => (
         <Link key={tab.value} href={tab.href} prefetch>
           <TabsTrigger 
             value={tab.value} 
-            className="px-6 data-[state=active]:bg-zinc-700/50 data-[state=active]:text-white transition-colors"
+            className="relative flex items-center  capitalize px-4 text-sm border-b-2 border-transparent hover:border-primary"
+
           >
             {tab.label}
           </TabsTrigger>

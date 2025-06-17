@@ -10,10 +10,8 @@ export function KeyboardShortcuts() {
   ];
 
   return (
-    <div className="space-y-4">
 
-      
-      <div className="space-y-3">
+      <div className="space-y-3 border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
         {shortcuts.map((shortcut, index) => (
           <div key={index} className="flex justify-between items-center p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
             <span className="text-sm font-medium">{shortcut.action}</span>
@@ -30,6 +28,6 @@ export function KeyboardShortcuts() {
           </div>
         ))}
       </div>
-    </div>
+
   );
 }

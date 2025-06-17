@@ -35,6 +35,7 @@ export const createUser = mutation({
 });
 
 // Add a new mutation to update user profile
+// Add to the existing updateUserProfile mutation
 export const updateUserProfile = mutation({
   args: {
     clerkId: v.string(),
@@ -42,6 +43,7 @@ export const updateUserProfile = mutation({
     occupation: v.optional(v.string()),
     traits: v.optional(v.array(v.string())),
     bio: v.optional(v.string()),
+    hidePersonalInfo: v.optional(v.boolean()), // Add this field
   },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -59,6 +61,31 @@ export const updateUserProfile = mutation({
       occupation: args.occupation,
       traits: args.traits,
       bio: args.bio,
+      hidePersonalInfo: args.hidePersonalInfo,
+      updatedAt: now,
+    });
+  }
+});
+
+// Add a specific mutation just for toggling privacy
+export const togglePrivacy = mutation({
+  args: {
+    clerkId: v.string(),
+    hidePersonalInfo: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const now = Date.now();
+    return await ctx.db.patch(user._id, {
+      hidePersonalInfo: args.hidePersonalInfo,
       updatedAt: now,
     });
   }

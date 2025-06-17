@@ -5,23 +5,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAPIKeyStore, PROVIDERS, Provider } from '@/app/stores/APIKeyStore';
-import { AlertCircle, CheckCircle2, Eye, EyeOff, X, Key, Shield, Zap } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Eye, EyeOff, X, Key } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getAvailableModels } from '@/lib/models';
 
-const providerIcons = {
-  openai: <Zap className="w-4 h-4" />,
-  google: <Shield className="w-4 h-4" />,
-  anthropic: <Key className="w-4 h-4" />
-};
 
-const providerColors = {
-  openai: 'bg-green-500',
-  google: 'bg-blue-500', 
-  anthropic: 'bg-purple-500'
-};
 
 export function ApiKeyManager() {
   const { keys, setKeys } = useAPIKeyStore();
@@ -80,8 +70,7 @@ export function ApiKeyManager() {
     <Card>
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
-          <Key className="w-5 h-5 text-primary" />
-          <CardTitle>API Keys</CardTitle>
+          <CardTitle className="text-2xl font-bold">API Keys</CardTitle>
         </div>
         <CardDescription>
           Configure your API keys to use different AI models
@@ -96,9 +85,8 @@ export function ApiKeyManager() {
                 <TabsTrigger 
                   key={provider} 
                   value={provider} 
-                  className="relative flex items-center gap-2 capitalize py-2 px-4"
+                  className="relative flex items-center gap-2 capitalize py-2 px-2 text-sm border-b-2 border-transparent hover:border-primary"
                 >
-                  {providerIcons[provider as keyof typeof providerIcons]}
                   <span>{provider}</span>
 
                 </TabsTrigger>
@@ -113,14 +101,11 @@ export function ApiKeyManager() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`p-2 rounded-md ${providerColors[provider as keyof typeof providerColors]} text-white`}>
-                        {providerIcons[provider as keyof typeof providerIcons]}
-                      </div>
                       <div>
                         <h4 className="font-medium">{provider} API Key</h4>
                         {keys[provider] && (
-                          <Badge variant="outline" className="mt-1">
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                          <Badge variant="outline" className="mt-1 bg-green-500/10 text-green-500">
+                            <CheckCircle2 className="w-3 h-3 mr-1 text-green-500" />
                             Active
                           </Badge>
                         )}
@@ -150,7 +135,7 @@ export function ApiKeyManager() {
                     <button
                       type="button"
                       onClick={() => toggleShowKey(provider)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-lg"
                     >
                       {showKeys[provider] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -170,13 +155,13 @@ export function ApiKeyManager() {
                     {modelsByProvider[provider]?.map(model => (
                       <Card 
                         key={model.id} 
-                        className={`p-4 ${keys[provider] ? 'bg-green-50/50' : 'bg-amber-50/50'}`}
+                        className={`p-4 ${keys[provider] ? 'bg-green-50/50 dark:bg-green-900/50' : 'bg-amber-50/50 dark:bg-amber-900/50'}`}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`p-1.5 rounded ${keys[provider] ? 'bg-green-100' : 'bg-amber-100'}`}>
+                          <div className={`p-1.5 rounded-lg ${keys[provider] ? 'bg-green-100 dark:bg-green-900/50' : 'bg-amber-100 dark:bg-amber-900/50'}`}>
                             {keys[provider] ? 
-                              <CheckCircle2 className="h-4 w-4 text-green-600" /> : 
-                              <AlertCircle className="h-4 w-4 text-amber-600" />
+                              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" /> : 
+                              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                             }
                           </div>
                           <div>
@@ -196,11 +181,11 @@ export function ApiKeyManager() {
                 <Button 
                   onClick={() => handleSaveKey(provider)} 
                   disabled={isLoading[provider] || !inputKeys[provider] || inputKeys[provider] === keys[provider]}
-                  className={`w-full sm:w-auto ${providerColors[provider as keyof typeof providerColors]}`}
+                  className={`w-full sm:w-auto`}
                 >
                   {isLoading[provider] ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-lg animate-spin mr-2" />
                       Saving...
                     </>
                   ) : (

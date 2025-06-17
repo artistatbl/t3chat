@@ -9,6 +9,7 @@ import { useIsMobile } from '@/app/hooks/use-mobile';
 import type { AIModel } from '@/lib/models';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Cpu } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function ModelSettings() {
   const { selectedModel, setModel } = useModelStore();
@@ -19,8 +20,7 @@ export function ModelSettings() {
     <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
       <CardHeader className="space-y-4">
         <div className="flex items-center gap-2">
-          <Cpu className="w-6 h-6 text-primary" />
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl font-bold">
             Model Selection
           </CardTitle>
         </div>
@@ -30,58 +30,60 @@ export function ModelSettings() {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        <RadioGroup
-          value={selectedModel}
-          onValueChange={(value) => setModel(value as AIModel)}
-          className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}
-        >
-          {models.map((model) => (
-            <Card
-              key={model.id}
-              className={`group relative overflow-hidden transition-all duration-300 cursor-pointer ${
-                selectedModel === model.id 
-                  ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20' 
-                  : 'hover:border-primary/30 hover:shadow-md hover:bg-accent/5 border-border/50'
-              }`}
-            >
-              <RadioGroupItem
-                value={model.id}
-                id={model.id}
-                className="sr-only"
-              />
-              <Label 
-                htmlFor={model.id}
-                className="block cursor-pointer"
+        <ScrollArea className="h-[500px] pr-4">
+          <RadioGroup
+            value={selectedModel}
+            onValueChange={(value) => setModel(value as AIModel)}
+            className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-1'}`}
+          >
+            {models.map((model) => (
+              <Card
+                key={model.id}
+                className={`group relative overflow-hidden transition-all duration-300 cursor-pointer ${
+                  selectedModel === model.id 
+                    ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20' 
+                    : 'hover:border-primary/30 hover:shadow-md hover:bg-accent/5 border-border/50'
+                }`}
               >
-                <div className="p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg transition-colors ${
-                        selectedModel === model.id 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'bg-muted group-hover:bg-primary/10'
-                      }`}>
-                        <Cpu className="w-4 h-4" />
+                <RadioGroupItem
+                  value={model.id}
+                  id={model.id}
+                  className="sr-only"
+                />
+                <Label 
+                  htmlFor={model.id}
+                  className="block cursor-pointer"
+                >
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg transition-colors ${
+                          selectedModel === model.id 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-muted group-hover:bg-primary/10'
+                        }`}>
+                          <Cpu className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{model.name}</h3>
+                          <Badge variant="outline" className="text-xs">
+                            {model.provider}
+                          </Badge>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">{model.name}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          {model.provider}
-                        </Badge>
-                      </div>
+                      {selectedModel === model.id && (
+                        <CheckCircle className="w-5 h-5 text-primary" />
+                      )}
                     </div>
-                    {selectedModel === model.id && (
-                      <CheckCircle className="w-5 h-5 text-primary" />
-                    )}
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {model.description}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {model.description}
-                  </p>
-                </div>
-              </Label>
-            </Card>
-          ))}
-        </RadioGroup>
+                </Label>
+              </Card>
+            ))}
+          </RadioGroup>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
