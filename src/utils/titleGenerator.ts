@@ -1,4 +1,5 @@
-// import { client } from '@/lib/client';
+// Add this import at the top
+import { client } from '@/lib/client';
 
 /**
  * Generates and saves a title for a new chat based on the first message
@@ -32,22 +33,12 @@ export async function generateAndSaveTitle(
     
     // Make the API call to generate the title with timeout
     console.log('🔄 TitleGenerator: Making API call to generate title');
-    let responseText = 'No response received';
     
     // Create an AbortController for timeout management
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 second timeout
     
     try {
-      // Prepare the request with the signal
-      const requestOptions = {
-        headers: {
-          [modelConfig.headerKey]: apiKey,
-          'Content-Type': 'application/json'
-        },
-        signal: controller.signal
-      };
-      
       // Log the request details (without sensitive info)
       console.log('📤 TitleGenerator: Sending request with payload:', {
         prompt: message.substring(0, 20) + '...',
@@ -56,16 +47,17 @@ export async function generateAndSaveTitle(
         model
       });
       
-      const response = await fetch(`${window.location.origin}/api/completion/complete`, {
-        method: 'POST',
-        headers: requestOptions.headers,
-        body: JSON.stringify({
-          prompt: message.trim(),
-          threadId,
-          isTitle: true,
-          model,
-        }),
-        signal: requestOptions.signal
+      // Use the client instead of direct fetch
+      const response = await client.completion.complete.$post({
+        prompt: message.trim(),
+        threadId,
+        model,
+        isTitle: true, // Explicitly set isTitle to true
+      }, {
+        headers: {
+          [modelConfig.headerKey]: apiKey,
+        },
+        // Remove this line - signal: controller.signal
       });
       
       // Clear the timeout since we got a response
@@ -74,26 +66,16 @@ export async function generateAndSaveTitle(
       console.log('📊 TitleGenerator: API response received');
       console.log('📊 TitleGenerator: API response status:', response.status);
       
-      // Read the response text
-      responseText = await response.text();
-      console.log('📊 TitleGenerator: Raw response text:', responseText);
-      
       if (!response.ok) {
+        const errorText = await response.text();
         console.error('❌ TitleGenerator: API response error status:', response.status);
-        console.error('❌ TitleGenerator: API response error text:', responseText);
-        throw new Error(`Failed to generate title: ${response.status} ${responseText}`);
+        console.error('❌ TitleGenerator: API response error text:', errorText);
+        throw new Error(`Failed to generate title: ${response.status} ${errorText}`);
       }
 
       console.log('✅ TitleGenerator: API call successful, parsing response');
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('📊 TitleGenerator: Parsed JSON result:', result);
-      } catch (parseError) {
-        console.error('❌ TitleGenerator: Failed to parse JSON response:', parseError);
-        console.error('❌ TitleGenerator: Raw response that failed to parse:', responseText);
-        throw new Error(`Failed to parse title response: ${parseError}`);
-      }
+      const result = await response.json();
+      console.log('📊 TitleGenerator: Parsed JSON result:', result);
       
       if ('error' in result) {
         console.error('❌ TitleGenerator: Error in result:', result.error);
@@ -112,18 +94,19 @@ export async function generateAndSaveTitle(
         console.warn('⚠️ TitleGenerator: No title was generated');
       }
     } catch (error) {
-      // Check if this was a timeout
+      // Check if this was a timeout or abort
       if (error) {
         console.error('%c ❌ TITLE GENERATION TIMEOUT: Request took too long', 'background: #F44336; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
       } else {
         console.error('%c ❌ TITLE GENERATION ERROR: ' + error, 'background: #F44336; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
       }
-      console.error('❌ TitleGenerator: Last response text:', responseText);
       
       // Clean up timeout if error occurs before response
       clearTimeout(timeoutId);
+      throw error; // Re-throw to be caught by outer try/catch
     }
   } catch (error) {
     console.error('❌ TitleGenerator: Failed to generate or save title:', error);
+    throw error; // Re-throw so ChatInput can implement fallback
   }
 }

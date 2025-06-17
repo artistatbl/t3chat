@@ -1,38 +1,38 @@
-'use client';
-import { ArrowUpIcon } from 'lucide-react';
-import { memo, useCallback, useMemo, useState } from 'react';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import useAutoResizeTextarea from '@/app/hooks/useAutoResizeTextArea';
-import { UseChatHelpers } from '@ai-sdk/react';
-import { useRouter } from 'next/navigation';
-import { useAPIKeyStore } from '@/app/stores/APIKeyStore';
-import { useModelStore } from '@/app/stores/ModelStore';
-import { getModelConfig } from '@/lib/models';
-import APIKeyDialog from '@/components/global/APIKeyDialog';
-import { UIMessage } from 'ai';
-import { v4 as uuidv4 } from 'uuid';
-import { StopIcon } from '../ui/icons';
-import { useMessageSummary } from '@/app/hooks/useMessageSummary';
-import { ChatModelDropdown } from './ModelSelector';
-import FileUploader from './FileUploader';
-import AttachmentChip from './AttachmentChip';
-import { generateAndSaveTitle } from '@/utils/titleGenerator'; // Add this import
+"use client";
+import { ArrowUpIcon } from "lucide-react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import useAutoResizeTextarea from "@/app/hooks/useAutoResizeTextArea";
+import { UseChatHelpers } from "@ai-sdk/react";
+import { useRouter } from "next/navigation";
+import { useAPIKeyStore } from "@/app/stores/APIKeyStore";
+import { useModelStore } from "@/app/stores/ModelStore";
+import { getModelConfig } from "@/lib/models";
+import APIKeyDialog from "@/components/global/APIKeyDialog";
+import { UIMessage } from "ai";
+import { v4 as uuidv4 } from "uuid";
+import { StopIcon } from "../ui/icons";
+import { useMessageSummary } from "@/app/hooks/useMessageSummary";
+import { ChatModelDropdown } from "./ModelSelector";
+import FileUploader from "./FileUploader";
+import AttachmentChip from "./AttachmentChip";
+import { generateAndSaveTitle } from "@/utils/titleGenerator"; // Add this import
 
 interface ChatInputProps {
   threadId: string;
-  input: UseChatHelpers['input'];
-  status: UseChatHelpers['status'];
-  setInput: UseChatHelpers['setInput'];
+  input: UseChatHelpers["input"];
+  status: UseChatHelpers["status"];
+  setInput: UseChatHelpers["setInput"];
   append: (message: UIMessage) => Promise<void>;
-  stop: UseChatHelpers['stop'];
+  stop: UseChatHelpers["stop"];
   saveChatTitle: (title: string) => Promise<void>;
   isNewChat?: boolean; // Add this prop to detect new chats
 }
 
 interface StopButtonProps {
-  stop: UseChatHelpers['stop'];
+  stop: UseChatHelpers["stop"];
 }
 
 interface SendButtonProps {
@@ -42,8 +42,8 @@ interface SendButtonProps {
 
 const createUserMessage = (id: string, text: string): UIMessage => ({
   id,
-  parts: [{ type: 'text', text }],
-  role: 'user',
+  parts: [{ type: "text", text }],
+  role: "user",
   content: text,
   createdAt: new Date(),
 });
@@ -61,8 +61,10 @@ function PureChatInput({
   const getKey = useAPIKeyStore((state) => state.getKey);
   const selectedModel = useModelStore((state) => state.selectedModel);
   const [showAPIKeyDialog, setShowAPIKeyDialog] = useState(false);
-  const [pendingInput, setPendingInput] = useState('');
-  const [attachments, setAttachments] = useState<Array<{ name: string; url: string; type: string }>>([]);
+  const [pendingInput, setPendingInput] = useState("");
+  const [attachments, setAttachments] = useState<
+    Array<{ name: string; url: string; type: string }>
+  >([]);
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 72,
@@ -73,7 +75,10 @@ function PureChatInput({
   const id = threadId && threadId.length > 0 ? threadId : null;
 
   const isDisabled = useMemo(
-    () => ((!input.trim() && attachments.length === 0) || status === 'streaming' || status === 'submitted'),
+    () =>
+      (!input.trim() && attachments.length === 0) ||
+      status === "streaming" ||
+      status === "submitted",
     [input, status, attachments.length]
   );
 
@@ -86,36 +91,46 @@ function PureChatInput({
   }, [getKey, selectedModel]);
 
   // Add this import at the top of the file
-  
+
   // Then modify the handleSubmit function
   const handleSubmit = useCallback(async () => {
     const currentInput = textareaRef.current?.value || input;
-  
+
     if (
       (!currentInput.trim() && attachments.length === 0) ||
-      status === 'streaming' ||
-      status === 'submitted'
+      status === "streaming" ||
+      status === "submitted"
     )
       return;
-  
+
     if (!hasApiKeyForCurrentModel()) {
       setPendingInput(currentInput.trim());
       setShowAPIKeyDialog(true);
       return;
     }
-  
+
     const messageId = uuidv4();
-  
+
     // Send the message first
     const userMessage = createUserMessage(messageId, currentInput.trim());
     if (attachments.length > 0) {
-      (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
+      (
+        userMessage as UIMessage & {
+          attachments: Array<{ name: string; url: string; type: string }>;
+        }
+      ).attachments = attachments;
     }
-    
+
+    // In the handleSubmit function, replace the title generation code with:
+
     // Start title generation in parallel but don't await it
     if (isNewChat && currentInput.trim()) {
-      console.log('%c 🚀 STARTING TITLE GENERATION FOR NEW CHAT', 'background: #FF9800; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+      console.log(
+        "%c 🚀 STARTING TITLE GENERATION FOR NEW CHAT",
+        "background: #FF9800; color: white; font-size: 16px; padding: 5px; border-radius: 5px;"
+      );
       // Use Promise.resolve to run this in parallel without blocking
+      // In the handleSubmit function
       Promise.resolve().then(async () => {
         try {
           const modelConfig = getModelConfig(selectedModel);
@@ -129,20 +144,71 @@ function PureChatInput({
               saveChatTitle,
               selectedModel
             );
-            console.log('%c 🏁 TITLE GENERATION PROCESS COMPLETED', 'background: #9C27B0; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+            console.log(
+              "%c 🏁 TITLE GENERATION PROCESS COMPLETED SUCCESSFULLY",
+              "background: #9C27B0; color: white; font-size: 16px; padding: 5px; border-radius: 5px;"
+            );
           }
         } catch (error) {
-          console.error('%c ❌ TITLE GENERATION FAILED: ' + error, 'background: #F44336; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+          console.error(
+            "%c ❌ TITLE GENERATION FAILED: " + error,
+            "background: #F44336; color: white; font-size: 16px; padding: 5px; border-radius: 5px;"
+          );
+
+          // Implement fallback title generation
+          try {
+            // Simple fallback: use first few words of the message as title
+            const words = currentInput.trim().split(" ").slice(0, 6);
+            const fallbackTitle =
+              words.join(" ") +
+              (currentInput.split(" ").length > 6 ? "..." : "");
+            console.log(
+              "%c ⚠️ USING FALLBACK TITLE: " + fallbackTitle,
+              "background: #FF9800; color: white; font-size: 16px; padding: 5px; border-radius: 5px;"
+            );
+            await saveChatTitle(fallbackTitle);
+          } catch (fallbackError) {
+            console.error("Failed to save fallback title:", fallbackError);
+          }
         }
       });
     }
-    
+
+    // And in handleAPIKeySuccess, use the same approach:
+    // Generate title ONLY for new chats (first message)
+    if (isNewChat && pendingInput.trim()) {
+      console.log(
+        "🎯 ChatInput handleAPIKeySuccess: Starting title generation for new chat"
+      );
+      setTimeout(async () => {
+        try {
+          const modelConfig = getModelConfig(selectedModel);
+          const apiKey = getKey(modelConfig.provider);
+          if (apiKey) {
+            await generateAndSaveTitle(
+              threadId,
+              pendingInput.trim(),
+              apiKey,
+              modelConfig,
+              saveChatTitle,
+              selectedModel
+            );
+          }
+        } catch (error) {
+          console.error(
+            "❌ ChatInput handleAPIKeySuccess: Failed to generate or save title:",
+            error
+          );
+        }
+      }, 500); // Small delay to ensure message is processed
+    }
+
     // Continue with message sending immediately
     append(userMessage);
-    setInput('');
+    setInput("");
     setAttachments([]);
     adjustHeight(true);
-  
+
     // Navigate to chat page for new chats
     if (!id) {
       router.push(`/chat/${threadId}`);
@@ -167,18 +233,22 @@ function PureChatInput({
 
   const handleAPIKeySuccess = useCallback(async () => {
     if (!pendingInput.trim() && attachments.length === 0) return;
-  
+
     const messageId = uuidv4();
-  
+
     // Send the message first
     const userMessage = createUserMessage(messageId, pendingInput);
     if (attachments.length > 0) {
-      (userMessage as UIMessage & { attachments: Array<{ name: string; url: string; type: string }> }).attachments = attachments;
+      (
+        userMessage as UIMessage & {
+          attachments: Array<{ name: string; url: string; type: string }>;
+        }
+      ).attachments = attachments;
     }
-    
+
     append(userMessage);
-    setInput('');
-    setPendingInput('');
+    setInput("");
+    setPendingInput("");
     setAttachments([]);
     adjustHeight(true);
     setShowAPIKeyDialog(false);
@@ -187,37 +257,66 @@ function PureChatInput({
     if (!id) {
       router.push(`/chat/${threadId}`);
     }
-    
+
     // Generate title ONLY for new chats (first message)
     if (isNewChat && pendingInput.trim()) {
-      console.log('🎯 ChatInput handleAPIKeySuccess: Starting title generation for new chat');
+      console.log(
+        "🎯 ChatInput handleAPIKeySuccess: Starting title generation for new chat"
+      );
       setTimeout(async () => {
         try {
-          console.log('📝 ChatInput handleAPIKeySuccess: Calling complete for title generation');
+          console.log(
+            "📝 ChatInput handleAPIKeySuccess: Calling complete for title generation"
+          );
           // Fix: Use correct parameters for complete function
           const generatedTitle = await complete(pendingInput.trim(), {
             body: {
               threadId,
               isTitle: true,
-            }
+            },
           });
-          console.log('✅ ChatInput handleAPIKeySuccess: Generated title:', generatedTitle);
+          console.log(
+            "✅ ChatInput handleAPIKeySuccess: Generated title:",
+            generatedTitle
+          );
           if (generatedTitle) {
-            console.log('💾 ChatInput handleAPIKeySuccess: Saving title to database');
+            console.log(
+              "💾 ChatInput handleAPIKeySuccess: Saving title to database"
+            );
             await saveChatTitle(generatedTitle);
-            console.log('✅ ChatInput handleAPIKeySuccess: Title saved successfully');
+            console.log(
+              "✅ ChatInput handleAPIKeySuccess: Title saved successfully"
+            );
           } else {
-            console.warn('⚠️ ChatInput handleAPIKeySuccess: No title generated');
+            console.warn(
+              "⚠️ ChatInput handleAPIKeySuccess: No title generated"
+            );
           }
         } catch (error) {
-          console.error('❌ ChatInput handleAPIKeySuccess: Failed to generate or save title:', error);
+          console.error(
+            "❌ ChatInput handleAPIKeySuccess: Failed to generate or save title:",
+            error
+          );
         }
       }, 500); // Small delay to ensure message is processed
     }
-  }, [pendingInput, id, router, threadId, complete, append, setInput, adjustHeight, attachments, saveChatTitle, isNewChat, selectedModel]);
+  }, [
+    pendingInput,
+    id,
+    router,
+    threadId,
+    complete,
+    append,
+    setInput,
+    adjustHeight,
+    attachments,
+    saveChatTitle,
+    isNewChat,
+    selectedModel,
+  ]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -228,12 +327,14 @@ function PureChatInput({
     adjustHeight();
   };
 
-  const handleFileUploaded = (files: Array<{ name: string; url: string; type: string }>) => {
-    setAttachments(prev => [...prev, ...files]);
+  const handleFileUploaded = (
+    files: Array<{ name: string; url: string; type: string }>
+  ) => {
+    setAttachments((prev) => [...prev, ...files]);
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -245,12 +346,12 @@ function PureChatInput({
               {attachments.length > 0 && (
                 <div className="flex flex-wrap gap-2 px-4 py-2">
                   {attachments.map((file, index) => (
-                    <AttachmentChip 
-                      key={index} 
-                      name={file.name} 
+                    <AttachmentChip
+                      key={index}
+                      name={file.name}
                       url={file.url}
                       type={file.type}
-                      onRemove={() => removeAttachment(index)} 
+                      onRemove={() => removeAttachment(index)}
                     />
                   ))}
                 </div>
@@ -261,12 +362,12 @@ function PureChatInput({
                   value={input}
                   placeholder="Type your message here..."
                   className={cn(
-                    'w-full px-4 py-3 border-none shadow-none dark:bg-transparent',
-                    'placeholder:text-zinc-600 text-sm dark:placeholder:text-zinc-300 resize-none',
-                    'focus-visible:ring-0 focus-visible:ring-offset-0',
-                    'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/30',
-                    'scrollbar-thumb-rounded-full',
-                    'min-h-[72px]'
+                    "w-full px-4 py-3 border-none shadow-none dark:bg-transparent",
+                    "placeholder:text-zinc-600 text-sm dark:placeholder:text-zinc-300 resize-none",
+                    "focus-visible:ring-0 focus-visible:ring-offset-0",
+                    "scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/30",
+                    "scrollbar-thumb-rounded-full",
+                    "min-h-[72px]"
                   )}
                   ref={textareaRef}
                   onKeyDown={handleKeyDown}
@@ -286,7 +387,7 @@ function PureChatInput({
                     <FileUploader onFileUploaded={handleFileUploaded} />
                   </div>
 
-                  {status === 'submitted' || status === 'streaming' ? (
+                  {status === "submitted" || status === "streaming" ? (
                     <StopButton stop={stop} />
                   ) : (
                     <SendButton onSubmit={handleSubmit} disabled={isDisabled} />
@@ -297,13 +398,13 @@ function PureChatInput({
           </div>
         </div>
       </div>
-      
+
       <APIKeyDialog
         open={showAPIKeyDialog}
         onOpenChange={(open) => {
           setShowAPIKeyDialog(open);
           if (!open) {
-            setPendingInput('');
+            setPendingInput("");
           }
         }}
         onSuccess={handleAPIKeySuccess}
@@ -321,8 +422,7 @@ const ChatInput = memo(PureChatInput, (prevProps, nextProps) => {
 function PureStopButton({ stop }: StopButtonProps) {
   return (
     <Button
-    className="h-10 w-10 rounded-lg bg-fuchsia-950/70 hover:bg-fuchsia-900 transition-all duration-200"
-
+      className="h-10 w-10 rounded-lg bg-fuchsia-950/70 hover:bg-fuchsia-900 transition-all duration-200"
       size="icon"
       onClick={stop}
       aria-label="Stop generating response"

@@ -1,6 +1,6 @@
 # T3Chat - Modern AI Chat Application
 
-A full-stack, real-time AI chat application built with the T3 stack, featuring multiple AI providers, advanced chat management, and a modern user interface.
+A full-stack, real-time AI chat application built with the Jstack, featuring multiple AI providers, advanced chat management, and a modern user interface.
 
 ## 🚀 Features
 
