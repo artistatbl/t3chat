@@ -17,13 +17,13 @@ export async function generateAndSaveTitle(
   modelConfig: { headerKey: string },
   saveChatTitle: (title: string) => Promise<void>,
   model: string
-): Promise<void> {
+): Promise<string | undefined> {
   if (!message.trim() || !threadId || !apiKey) {
     console.warn('❌ TitleGenerator: Missing required parameters for title generation');
     console.log('📊 TitleGenerator: Thread ID:', threadId);
     console.log('📊 TitleGenerator: Message empty:', !message.trim());
     console.log('📊 TitleGenerator: API key empty:', !apiKey);
-    return;
+    return undefined;
   }
 
   try {
@@ -89,9 +89,10 @@ export async function generateAndSaveTitle(
         console.log('💾 TitleGenerator: Saving title to database');
         await saveChatTitle(generatedTitle);
         console.log('%c ✅ TITLE SAVED SUCCESSFULLY: ' + generatedTitle, 'background: #2196F3; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
-        return;
+        return generatedTitle;
       } else {
         console.warn('⚠️ TitleGenerator: No title was generated');
+        return undefined;
       }
     } catch (error) {
       // Check if this was a timeout or abort
@@ -100,13 +101,23 @@ export async function generateAndSaveTitle(
       } else {
         console.error('%c ❌ TITLE GENERATION ERROR: ' + error, 'background: #F44336; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
       }
-      
       // Clean up timeout if error occurs before response
       clearTimeout(timeoutId);
-      throw error; // Re-throw to be caught by outer try/catch
+      return undefined;
     }
   } catch (error) {
     console.error('❌ TitleGenerator: Failed to generate or save title:', error);
-    throw error; // Re-throw so ChatInput can implement fallback
+    
+    // Fallback to a simple title if all else fails
+    try {
+      const words = message.trim().split(' ').slice(0, 6);
+      const fallbackTitle = words.join(' ') + (message.split(' ').length > 6 ? '...' : '');
+      console.log('%c ⚠️ USING FALLBACK TITLE: ' + fallbackTitle, 'background: #FF9800; color: white; font-size: 16px; padding: 5px; border-radius: 5px;');
+      await saveChatTitle(fallbackTitle);
+      return fallbackTitle;
+    } catch (fallbackError) {
+      console.error('Failed to save fallback title:', fallbackError);
+      return undefined;
+    }
   }
 }

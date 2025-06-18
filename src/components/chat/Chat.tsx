@@ -7,6 +7,7 @@ import { useAPIKeyStore } from "@/app/stores/APIKeyStore";
 import { useModelStore } from "@/app/stores/ModelStore";
 import { useThreadStore } from "@/app/stores/ThreadStore";
 import { useConvexChat } from "@/hooks/useConvexChat";
+import { useSyncTabs } from "@/hooks/useSyncTabs";
 import { client } from "@/lib/client";
 import ThemeToggler from "../ui/ThemeToggler";
 import { Button } from "../ui/button";
@@ -27,6 +28,8 @@ interface ChatProps {
   initialMessages: UIMessage[];
   onMessageSubmit?: () => void;
 }
+
+// Extending the UIMessage interface from 'ai' package to include our custom properties
 
 type ChatStatus = "ready" | "streaming" | "submitted" | "error";
 
@@ -58,6 +61,12 @@ export default function Chat({
     saveChatTitle,
     messages: convexMessages,
   } = useConvexChat(threadId);
+  
+  // Initialize tab synchronization
+  const {
+    broadcastNewMessage,
+    subscribeToEvents
+  } = useSyncTabs(threadId);
 
   const [messages, setMessages] = useState<UIMessage[]>(initialMessages);
   const [input, setInput] = useState("");
@@ -70,6 +79,7 @@ export default function Chat({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
+  const lastBroadcastTime = useRef<number | null>(null);
 
   const { registerRef } = useChatNavigator();
 
@@ -96,6 +106,51 @@ export default function Chat({
       return () => container.removeEventListener("scroll", handleScroll);
     }
   }, [handleScroll]);
+  
+  // Listen for events from other tabs
+  useEffect(() => {
+    if (!threadId) return;
+    
+    // Subscribe to events from other tabs
+    const unsubscribe = subscribeToEvents((event) => {
+      switch (event.type) {
+        case 'NEW_MESSAGE':
+          // Process the incoming message
+          const newMessage = event.data as UIMessage & { isFinalMessage?: boolean };
+          
+          setMessages((prev) => {
+            // Check if message already exists
+            const existingMessageIndex = prev.findIndex(msg => msg.id === newMessage.id);
+            
+            if (existingMessageIndex >= 0) {
+              // If this is the final message or the existing message is not final,
+              // update it to ensure we have the complete content
+              if (newMessage.isFinalMessage || !(prev[existingMessageIndex] as UIMessage & { isFinalMessage?: boolean }).isFinalMessage) {
+                const updatedMessages = [...prev];
+                updatedMessages[existingMessageIndex] = newMessage;
+                return updatedMessages;
+              }
+              // If the existing message is already marked as final, don't update it
+              return prev;
+            }
+            
+            // If message doesn't exist, add it
+            return [...prev, newMessage];
+          });
+          break;
+          
+        case 'TYPING':
+          // Could implement typing indicator here
+          break;
+          
+        case 'TITLE_CHANGE':
+          // Title changes are handled by Convex automatically
+          break;
+      }
+    });
+    
+    return unsubscribe;
+  }, [threadId, subscribeToEvents]);
 
   // Add the handleBranch function
   const handleBranch = useCallback(
@@ -189,6 +244,9 @@ export default function Chat({
 
       // Save user message to database
       await saveUserMessage(message);
+      
+      // Broadcast the message to other tabs
+      broadcastNewMessage(message);
 
       // For new chats, we'll let the AI generate the title via ChatInput
       // No need to create a truncated title here anymore
@@ -388,11 +446,44 @@ export default function Chat({
 
                   if (lastMessage && lastMessage.role === "assistant") {
                     // Create completely new object to trigger React re-render
-                    newMessages[lastIndex] = {
+                    const updatedMessage = {
                       ...lastMessage,
                       content: accumulatedContent,
                       parts: [{ type: "text", text: accumulatedContent }],
+                      // Mark as not final during streaming
+                      isFinalMessage: false
                     };
+                    
+                    newMessages[lastIndex] = {
+                      ...updatedMessage,
+                      parts: updatedMessage.parts.map(part => ({
+                        type: "text" as const,
+                        text: part.text
+                      }))
+                    };
+                    
+                    // Broadcast the updated AI message to other tabs
+                    // Use a small delay to throttle broadcasts and prevent UI glitches
+                    // This creates smoother streaming across tabs
+                    const currentTime = Date.now();
+                    // Only broadcast every 200ms to avoid overwhelming the channel
+                    // Increased from 100ms to 200ms for better performance
+                    if (!lastBroadcastTime.current || currentTime - lastBroadcastTime.current >= 200) {
+                      lastBroadcastTime.current = currentTime;
+                      
+                      // Clone the message to avoid reference issues
+                      const messageToSend = {
+                        ...updatedMessage,
+                        parts: updatedMessage.parts.map(part => ({
+                          type: "text" as const,
+                          text: part.text
+                        })),
+                        isFinalMessage: false // Explicitly mark as not final
+                      };
+                      
+                      broadcastNewMessage(messageToSend);
+                    }
+                    
                     // console.log(
                     //   "🔄 Updated assistant message:",
                     //   newMessages[lastIndex]
@@ -444,8 +535,20 @@ export default function Chat({
           ...assistantMessage,
           content: accumulatedContent,
           parts: [{ type: "text", text: accumulatedContent }],
+          // Add a flag to indicate this is the final complete message
+        //  isFinalMessage: true
         };
         await saveAssistantMessage(finalAssistantMessage);
+        
+        // Broadcast the final assistant message to other tabs
+        // Reset the throttling timer to ensure the final message is always sent
+        lastBroadcastTime.current = null;
+        
+        // Ensure the final message is broadcast with a slight delay
+        // This helps ensure it's processed after any in-flight streaming updates
+        setTimeout(() => {
+          broadcastNewMessage(finalAssistantMessage);
+        }, 100);
 
         setStatus("ready");
       } catch (err) {

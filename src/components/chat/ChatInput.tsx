@@ -1,6 +1,6 @@
 "use client";
 import { ArrowUpIcon } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,8 @@ import { useMessageSummary } from "@/hooks/useMessageSummary";
 import { ChatModelDropdown } from "./ModelSelector";
 import FileUploader from "./FileUploader";
 import AttachmentChip from "./AttachmentChip";
-import { generateAndSaveTitle } from "@/utils/titleGenerator"; // Add this import
+import { generateAndSaveTitle } from "@/utils/titleGenerator";
+import { useSyncTabs } from "@/hooks/useSyncTabs"; // Import the sync tabs hook
 
 interface ChatInputProps {
   threadId: string;
@@ -41,7 +42,7 @@ interface SendButtonProps {
 }
 
 const createUserMessage = (id: string, text: string): UIMessage => ({
-  id,
+  id: id,
   parts: [{ type: "text", text }],
   role: "user",
   content: text,
@@ -65,6 +66,9 @@ function PureChatInput({
   const [attachments, setAttachments] = useState<
     Array<{ name: string; url: string; type: string }>
   >([]);
+  
+  // Initialize tab synchronization
+  const { broadcastTyping, broadcastTitleChange } = useSyncTabs(threadId);
 
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 72,
@@ -81,6 +85,23 @@ function PureChatInput({
       status === "submitted",
     [input, status, attachments.length]
   );
+  
+  // Broadcast typing status when input changes
+  useEffect(() => {
+    // Only broadcast if there's actual input
+    if (input.trim().length > 0) {
+      broadcastTyping(true);
+      
+      // Set a timeout to broadcast stop typing after 2 seconds of inactivity
+      const timeout = setTimeout(() => {
+        broadcastTyping(false);
+      }, 2000);
+      
+      return () => clearTimeout(timeout);
+    } else {
+      broadcastTyping(false);
+    }
+  }, [input, broadcastTyping]);
 
   const { complete } = useMessageSummary();
 
@@ -136,7 +157,7 @@ function PureChatInput({
           const modelConfig = getModelConfig(selectedModel);
           const apiKey = getKey(modelConfig.provider);
           if (apiKey) {
-            await generateAndSaveTitle(
+            const title = await generateAndSaveTitle(
               threadId,
               currentInput.trim(),
               apiKey,
@@ -148,6 +169,11 @@ function PureChatInput({
               "%c 🏁 TITLE GENERATION PROCESS COMPLETED SUCCESSFULLY",
               "background: #9C27B0; color: white; font-size: 16px; padding: 5px; border-radius: 5px;"
             );
+            
+            // Broadcast the title change to other tabs
+            if (title) {
+              broadcastTitleChange(title);
+            }
           }
         } catch (error) {
           console.error(
@@ -167,6 +193,9 @@ function PureChatInput({
               "background: #FF9800; color: white; font-size: 16px; padding: 5px; border-radius: 5px;"
             );
             await saveChatTitle(fallbackTitle);
+            
+            // Broadcast the fallback title change to other tabs
+            broadcastTitleChange(fallbackTitle);
           } catch (fallbackError) {
             console.error("Failed to save fallback title:", fallbackError);
           }
