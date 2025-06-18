@@ -116,7 +116,7 @@ export default function Chat({
       switch (event.type) {
         case 'NEW_MESSAGE':
           // Process the incoming message
-          const newMessage = event.data as UIMessage & { isFinalMessage?: boolean };
+          const newMessage = event.payload as UIMessage & { isFinalMessage?: boolean };
           
           setMessages((prev) => {
             // Check if message already exists
