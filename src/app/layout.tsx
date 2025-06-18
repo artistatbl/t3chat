@@ -34,22 +34,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-          <main className="">
-        <ClerkProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-          >
-
-            <Providers>
-              <ConvexClientProvider>{children}</ConvexClientProvider>
-            </Providers>
-            <Toaster richColors position="bottom-right" theme="system" />
-            <Analytics />
-          </ThemeProvider>
-        </ClerkProvider>
-            </main>
+        <main className="">
+          <ClerkProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <Providers>
+                <ConvexClientProvider>{children}</ConvexClientProvider>
+              </Providers>
+              <Toaster richColors position="bottom-right" theme="system" />
+              <Analytics />
+            </ThemeProvider>
+          </ClerkProvider>
+        </main>
       </body>
     </html>
   );
