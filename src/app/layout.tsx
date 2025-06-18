@@ -42,6 +42,10 @@ export default function RootLayout({
               </Providers>
               <Toaster richColors position="bottom-right" theme="system" />
               <Analytics />
+              <script 
+                defer 
+                src="https://assets.onedollarstats.com/stonks.js" 
+              ></script>
             </ThemeProvider>
           </ClerkProvider>
         </main>
