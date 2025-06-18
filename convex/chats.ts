@@ -36,11 +36,8 @@ export const updateChatTitle = mutation({
     title: v.string(),
   },
   handler: async (ctx, args) => {
-    console.log("[updateChatTitle] Received:", {
-      uuid: args.uuid,
-      title: args.title,
-    });
-
+    console.log("[updateChatTitle] Received:", { uuid: args.uuid, title: args.title });
+    
     const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
@@ -52,14 +49,14 @@ export const updateChatTitle = mutation({
     }
 
     console.log("[updateChatTitle] Found chat:", chat);
-
+    
     await ctx.db.patch(chat._id, {
       title: args.title,
       updatedAt: Date.now(),
     });
-
+    
     console.log("[updateChatTitle] Updated chat with title:", args.title);
-
+    
     return chat;
   },
 });
@@ -68,22 +65,22 @@ export const getChatByUuid = query({
   args: { uuid: v.string() },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-
+    
     const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
       .first();
-
+    
     if (!chat) {
       return null;
     }
-
+    
     // Allow access if:
     // 1. Chat is public, OR
     // 2. User is authenticated and owns the chat
     const userId = identity?.subject;
     const canAccess = chat.isPublic || (userId && chat.userId === userId);
-
+    
     return canAccess ? chat : null;
   },
 });
@@ -128,28 +125,6 @@ export const deleteChat = mutation({
     // Verify the user owns this chat
     if (chat.userId !== args.userId) {
       throw new Error("Unauthorized: You can only delete your own chats");
-    }
-
-    // Find and delete all branch chats that reference this chat as parent
-    const branchChats = await ctx.db
-      .query("chats")
-      .withIndex("by_parent", (q) => q.eq("parentChatId", args.uuid))
-      .collect();
-
-    // Recursively delete all branch chats and their messages
-    for (const branchChat of branchChats) {
-      // Delete all messages in the branch chat
-      const branchMessages = await ctx.db
-        .query("messages")
-        .withIndex("by_chat", (q) => q.eq("chatId", branchChat._id))
-        .collect();
-
-      for (const message of branchMessages) {
-        await ctx.db.delete(message._id);
-      }
-
-      // Delete the branch chat
-      await ctx.db.delete(branchChat._id);
     }
 
     // Delete all messages associated with this chat
@@ -260,16 +235,14 @@ export const createBranch = mutation({
       .collect();
 
     // Find the branch point message
-    const branchMessage = messages.find(
-      (m) => m.uuid === args.branchFromMessageId
-    );
+    const branchMessage = messages.find(m => m.uuid === args.branchFromMessageId);
     if (!branchMessage) {
       throw new Error("Branch point message not found");
     }
 
     // Get messages up to and including the branch point
     const messagesToCopy = messages
-      .filter((m) => m.createdAt <= branchMessage.createdAt)
+      .filter(m => m.createdAt <= branchMessage.createdAt)
       .sort((a, b) => a.createdAt - b.createdAt);
 
     const now = Date.now();
@@ -319,19 +292,19 @@ export const getChatWithBranchInfo = query({
   args: { uuid: v.string() },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-
+    
     const chat = await ctx.db
       .query("chats")
       .withIndex("by_uuid", (q) => q.eq("uuid", args.uuid))
       .first();
-
+    
     if (!chat) {
       return null;
     }
-
+    
     const userId = identity?.subject;
     const canAccess = chat.isPublic || (userId && chat.userId === userId);
-
+    
     if (!canAccess) {
       return null;
     }
