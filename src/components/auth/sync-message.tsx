@@ -1,7 +1,6 @@
 import { Heading } from "../global/heading"
 import { LoadingSpinner } from "../global/loading-spinner"
 import { useEffect, useState } from "react"
-// import { Logo } from "../global/logo"
 
 interface SyncMessageProps {
   title: string

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/button";
@@ -69,7 +69,7 @@ export default function ChatDelete({
        <Button
         variant="ghost"
         size="sm"
-        className="opacity-0 group-hover/menu-item:opacity-100 transition-all duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] transform scale-75 group-hover/menu-item:scale-100 p-1 h-6 w-6 hover:bg-red-100 hover:text-red-600"
+        className="opacity-0 group-hover/menu-item:opacity-100 transition-all duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] transform scale-75 group-hover/menu-item:scale-100  h-6 w-6 hover:bg-red-400 dark:hover:bg-red-400 hover:text-white "
         onClick={handleOpenDialog}
         title="Delete chat"
       >
@@ -80,7 +80,6 @@ export default function ChatDelete({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
               Delete Chat
             </DialogTitle>
             <DialogDescription>

@@ -171,7 +171,7 @@ export default function ChatSidebar() {
           <div className="flex-shrink-0 opacity-0 group-hover/thread:opacity-100 transition-opacity ml-auto flex items-center">
             <button
               onClick={(e) => handleTogglePinned(e, chat)}
-              className="p-1 hover:text-fuchsia-800 transition-colors"
+              className="p-1 hover:text-fuchsia-800 hover:bg-fuchsia-700/20 rounded-sm cursor-pointer transition-colors"
               aria-label={chat.pinned ? "Unpin chat" : "Pin chat"}
             >
               {chat.pinned ? (
