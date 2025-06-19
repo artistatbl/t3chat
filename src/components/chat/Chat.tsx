@@ -108,49 +108,59 @@ export default function Chat({
   }, [handleScroll]);
   
   // Listen for events from other tabs
-  useEffect(() => {
-    if (!threadId) return;
-    
-    // Subscribe to events from other tabs
-    const unsubscribe = subscribeToEvents((event) => {
-      switch (event.type) {
-        case 'NEW_MESSAGE':
-          // Process the incoming message
-          const newMessage = event.payload as UIMessage & { isFinalMessage?: boolean };
+useEffect(() => {
+  if (!threadId) return;
+  
+  // Subscribe to events from other tabs
+  const unsubscribe = subscribeToEvents((event) => {
+    switch (event.type) {
+      case 'NEW_MESSAGE':
+        // Type assertion to handle the message payload
+        const newMessage = event.payload as UIMessage & { isFinalMessage?: boolean };
+        
+        // Only process if we have a valid message with an ID
+        if (!newMessage || !newMessage.id) return;
+        
+        // Update messages state efficiently
+        setMessages((prev) => {
+          // Find if this message already exists
+          const existingMessageIndex = prev.findIndex(msg => msg.id === newMessage.id);
           
-          setMessages((prev) => {
-            // Check if message already exists
-            const existingMessageIndex = prev.findIndex(msg => msg.id === newMessage.id);
+          // If message exists, decide whether to update it
+          if (existingMessageIndex >= 0) {
+            const existingMessage = prev[existingMessageIndex] as UIMessage & { isFinalMessage?: boolean };
             
-            if (existingMessageIndex >= 0) {
-              // If this is the final message or the existing message is not final,
-              // update it to ensure we have the complete content
-              if (newMessage.isFinalMessage || !(prev[existingMessageIndex] as UIMessage & { isFinalMessage?: boolean }).isFinalMessage) {
-                const updatedMessages = [...prev];
-                updatedMessages[existingMessageIndex] = newMessage;
-                return updatedMessages;
-              }
-              // If the existing message is already marked as final, don't update it
-              return prev;
+            // Only update if the new message is final or the existing one isn't final
+            // This prevents overwriting a final message with a streaming update
+            if (newMessage.isFinalMessage || !existingMessage.isFinalMessage) {
+              // Create a new array to trigger proper React updates
+              const updatedMessages = [...prev];
+              updatedMessages[existingMessageIndex] = newMessage;
+              return updatedMessages;
             }
-            
-            // If message doesn't exist, add it
-            return [...prev, newMessage];
-          });
-          break;
+            return prev; // No change needed
+          }
           
-        case 'TYPING':
-          // Could implement typing indicator here
-          break;
-          
-        case 'TITLE_CHANGE':
-          // Title changes are handled by Convex automatically
-          break;
-      }
-    });
-    
-    return unsubscribe;
-  }, [threadId, subscribeToEvents]);
+          // If message doesn't exist, add it to the array
+          return [...prev, newMessage];
+        });
+        break;
+        
+      case 'TYPING':
+        // Could implement typing indicator here if needed
+        // const isTyping = event.payload as boolean;
+        break;
+        
+      case 'TITLE_CHANGE':
+        // Title changes are handled by Convex automatically
+        // const newTitle = event.payload as string;
+        break;
+    }
+  });
+  
+  // Clean up subscription when component unmounts or threadId changes
+  return unsubscribe;
+}, [threadId]); // threadId is the only dependency needed
 
   // Add the handleBranch function
   const handleBranch = useCallback(

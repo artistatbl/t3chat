@@ -86,21 +86,26 @@ function PureChatInput({
     [input, status, attachments.length]
   );
   
-  // Broadcast typing status when input changes
+  // Broadcast typing status when input changes - with debounce for performance
   useEffect(() => {
-    // Only broadcast if there's actual input
-    if (input.trim().length > 0) {
+    // Use a ref to track the last typing state to avoid redundant broadcasts
+    const isTyping = input.trim().length > 0;
+    
+    // Broadcast immediately when typing starts
+    if (isTyping) {
       broadcastTyping(true);
-      
-      // Set a timeout to broadcast stop typing after 2 seconds of inactivity
-      const timeout = setTimeout(() => {
-        broadcastTyping(false);
-      }, 2000);
-      
-      return () => clearTimeout(timeout);
-    } else {
-      broadcastTyping(false);
     }
+    
+    // Use a debounced approach to detect when typing stops
+    const debounceTimeout = setTimeout(() => {
+      // Only broadcast stop typing after the timeout
+      if (!isTyping) {
+        broadcastTyping(false);
+      }
+    }, isTyping ? 2000 : 100); // Longer timeout when typing, shorter when stopped
+    
+    // Clean up timeout on each input change
+    return () => clearTimeout(debounceTimeout);
   }, [input, broadcastTyping]);
 
   const { complete } = useMessageSummary();
@@ -254,6 +259,9 @@ function PureChatInput({
     complete,
     router,
     hasApiKeyForCurrentModel,
+    getKey,
+    pendingInput,
+    broadcastTitleChange,
     attachments,
     saveChatTitle,
     isNewChat,
